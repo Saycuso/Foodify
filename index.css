@@ -1,7 +1,7 @@
 .header {
     display: flex;
-    justify-content: space-between;
-    border: 1px solid black;
+    justify-content: space-between; 
+    
 }
 
 .logo {
@@ -9,10 +9,15 @@
 }
 
 .nav_items > ul {
-    font-size: 24px;
+    font-size: 20px;
     display: flex;
     list-style-type: none;
     align-items: center; /* Centers list items in nav */
+}
+
+.nav_items > ul> li:hover{
+ color:orange;
+ cursor: pointer;
 }
 
 .nav_items > ul > li {
@@ -107,4 +112,35 @@
     margin-right: 10px;
     cursor: pointer;
     width: 80px;
+}
+
+
+
+.Filter{
+    display: flex;
+    align-items: center; /* Aligns items in a row */
+    gap: 10px;
+}
+
+.search {
+    display: flex;
+    gap: 5px;
+    margin-right: 10px;
+    
+}
+
+.search-box {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #625858
+}
+
+.search button {
+    padding: 10px 12px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+.search button:hover {
+    background-color: #ddd;
 }
