@@ -28,10 +28,15 @@ const RestaurantMenu = () => {
     avgRatingString,
     costForTwoMessage,
     totalRatingsString,
-  } = resInfo?.cards[2]?.card?.card?.info;
+  } = resInfo?.cards[2]?.card?.card?.info || {};
   const { itemCards } =
-    resInfo?.cards[4]?.groupedCard?.cardGroupMap?.REGULAR?.cards[3]?.card?.card;
-
+    resInfo?.cards[4]?.groupedCard?.cardGroupMap?.REGULAR?.cards[3]?.card?.card || [];
+  
+    if (!itemCards || !Array.isArray(itemCards) || itemCards.length === 0) {
+      console.log("itemCards is empty or undefined");
+      return <p>Menu data not available. Please try again later.</p>;
+    }
+    
   return (
     <div className="menu">
       <h1>{name}</h1>
