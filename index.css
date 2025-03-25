@@ -15,14 +15,16 @@
     align-items: center; /* Centers list items in nav */
 }
 
-.nav_items > ul> li:hover{
+.nav_items > ul> li> a:hover{
  color:orange;
  cursor: pointer;
 }
 
-.nav_items > ul > li {
+.nav_items > ul > li > a{
     padding: 10px;
     margin: 10px;
+    text-decoration: none;
+    color: black;
 }
 
 .res-card {

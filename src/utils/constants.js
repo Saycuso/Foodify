@@ -8,3 +8,5 @@ export const truncateText = (text, maxlength) => {
     return text.length > maxlength ? text.slice(0, maxlength) + "..." : text
   }
   
+export const MENU_URL = 
+    "https://www.swiggy.com/dapi/menu/pl?page-type=REGULAR_MENU&complete-menu=true&lat=19.0073741&lng=73.1125136&restaurantId="
