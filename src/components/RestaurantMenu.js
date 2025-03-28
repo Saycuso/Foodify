@@ -1,25 +1,11 @@
-import { useState, useEffect } from "react";
 import Shimmer from "./Shimmer";
 import { useParams } from "react-router-dom";
-import { MENU_URL } from "../utils/constants";
+import useRestaurantMenu from "../utils/useRestaurantMenu";
 
 const RestaurantMenu = () => {
-  const [resInfo, setresInfo] = useState(null);
-
   const { resId } = useParams();
-  console.log(resId);
-
-  useEffect(() => {
-    fetchMenu();
-  }, []);
-
-  const fetchMenu = async () => {
-    const data = await fetch(MENU_URL + resId);
-    const json = await data.json();
-    console.log(json);
-    setresInfo(json.data);
-  };
-
+  const resInfo = useRestaurantMenu(resId)
+ 
   if (resInfo == null) return <Shimmer />;
 
   const {
@@ -29,13 +15,14 @@ const RestaurantMenu = () => {
     costForTwoMessage,
     totalRatingsString,
   } = resInfo?.cards[2]?.card?.card?.info || {};
-  const { itemCards } =
-    resInfo?.cards[4]?.groupedCard?.cardGroupMap?.REGULAR?.cards[3]?.card?.card || [];
   
-    if (!itemCards || !Array.isArray(itemCards) || itemCards.length === 0) {
-      console.log("itemCards is empty or undefined");
-      return <p>Menu data not available. Please try again later.</p>;
-    }
+  const { itemCards } =
+    resInfo?.cards[4]?.groupedCard?.cardGroupMap?.REGULAR?.cards[2]?.card?.card || [];
+  
+     if (!itemCards || !Array.isArray(itemCards) || itemCards.length === 0) {
+       console.log("itemCards is empty or undefined");
+       return <p>Menu data not available. Please try again later.</p>;
+     }
     
   return (
     <div className="menu">

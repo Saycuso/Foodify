@@ -1,4 +1,5 @@
 const About = () => {
+    console.log("About Rendered!");
     return (
         <div>
             <h1>About</h1>
