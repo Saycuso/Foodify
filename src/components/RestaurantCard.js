@@ -10,10 +10,10 @@ const RestaurantCard = (props) => {
       avgRating = "Delivery Time Unavailable"} = resData
     console.log(props)
     return (
-      <div className="m-4 p-4 w-[300px] h-[320px] bg-orange-200 rounded-xl shadow-md shadow-amber-500">
+      <div className="m-4 p-4 w-[300px] h-[320px] bg-orange-200 rounded-xl shadow-md shadow-amber-500 transition-transform duration-150 hover:scale-95 hover:opacity-95">
         <img
           alt="res-logo"
-          className="rounded-xl w-150 h-50 border border-gray-400"
+          className="rounded-xl w-150 h-50"
           src={ RESIMG_URL + 
             cloudinaryImageId}
         />
