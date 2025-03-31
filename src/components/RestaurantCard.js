@@ -10,17 +10,19 @@ const RestaurantCard = (props) => {
       avgRating = "Delivery Time Unavailable"} = resData
     console.log(props)
     return (
-      <div className="res-card" >
+      <div className="m-4 p-4 w-[300px] h-[320px] bg-orange-200 rounded-xl shadow-md shadow-amber-500">
         <img
           alt="res-logo"
-          className="res-logo"
+          className="rounded-xl w-150 h-50 border border-gray-400"
           src={ RESIMG_URL + 
             cloudinaryImageId}
         />
-        <h3 className="overlay-text">{truncateText(name, 25)}</h3>
-        <h4 >{truncateText(cuisines.join(", "),20)}</h4>
+        <div className="ms-1.5 mt-1">
+        <h3 className="font-bold">{truncateText(name, 30)}</h3>
+        <h4 >{truncateText(cuisines.join(", "),30)}</h4>
         <h4>{costForTwo}</h4>
         <h4>{avgRating}</h4>
+        </div>
       </div>
     );
   };

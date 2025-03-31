@@ -38,18 +38,19 @@ const Body = () => {
     <Shimmer />
   ) : (
     <div className="body">
-      <div className="Filter">
+      <div className="">
+        <div className="flex mt-10 ms-28 items-center gap-x-4">
         {/* Search Bar */}
-        <div className="search">
+        <div className="search w-[500px] h-10 flex border border-gray-900 rounded-full overflow-hidden ">
           <input
             type="text"
-            className="search-box"
+            className="outline-none flex-grow"
             value={SearchText}
             onChange={(e) => {
               setSearchText(e.target.value);
             }}
           />
-          <button
+          <button className=" bg-orange-200 px-4 rounded-r-lg hover:cursor-pointer border-gray-900"
             onClick={() => {
               // Filter the restaurant card and update
               // searchText
@@ -65,10 +66,11 @@ const Body = () => {
             Search
           </button>
         </div>
-
-        {/* Button 1 */}
+        
+        <div className="flex gap-x-4">
+          {/* Button 1 */}
         <button
-          className="all-btn"
+          className="all-btn bg-orange-200 px-6 py-2 rounded-3xl hover:cursor-pointer border border-gray-500"
           onClick={() => setfilteredRestaurants(ListOfRestaurants)} // Reload from API instead of mock data
         >
           All
@@ -76,7 +78,7 @@ const Body = () => {
 
         {/* Button 2 */}
         <button
-          className="rating-btn"
+          className="rating-btn bg-orange-200 px-6 py-2 rounded-3xl hover:cursor-pointer border border-gray-500"
           onClick={() => {
             const filteredList = ListOfRestaurants.filter(
               (res) => res.info?.avgRating > 4
@@ -86,10 +88,12 @@ const Body = () => {
         >
           Top Rated Restaurants
         </button>
+        </div>
+        </div>
       </div>
 
       {/* Restaurant container */}
-      <div className="res-container">
+      <div className="flex flex-wrap justify-center items-center mt-5">
         {filteredRestaurants.map((restaurant) => (
           <Link key={restaurant.info.id } 
           to={"/restaurants/" + restaurant.info.id }>

@@ -3,32 +3,33 @@
     "version": "1.0.0",
     "description": "This is Namaste react app",
     "scripts": {
-      "start": "parcel index.html",
-      "build": "parcel build index.html",
-      "test": "jest"
+        "start": "parcel index.html",
+        "build": "parcel build index.html",
+        "test": "jest"
     },
     "repository": {
-      "type": "git",
-      "url": "git+https://github.com/Saycuso/namaste-react.git"
+        "type": "git",
+        "url": "git+https://github.com/Saycuso/namaste-react.git"
     },
     "keywords": [],
     "author": "Abhishek Khairnar",
     "license": "ISC",
     "bugs": {
-      "url": "https://github.com/Saycuso/namaste-react/issues"
+        "url": "https://github.com/Saycuso/namaste-react/issues"
     },
     "homepage": "https://github.com/Saycuso/namaste-react#readme",
     "devDependencies": {
-      "parcel": "^2.13.3",
-      "process": "^0.11.10"
+        "parcel": "^2.13.3",
+        "process": "^0.11.10"
     },
     "dependencies": {
-      "react": "^19.0.0",
-      "react-dom": "^19.0.0",
-      "react-router-dom": "^6.22.0"
+        "@tailwindcss/postcss": "^4.0.17",
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0",
+        "react-router-dom": "^6.22.0",
+        "tailwindcss": "^4.0.17"
     },
     "browserslist": [
-      "last 2 version"
+        "last 2 version"
     ]
-  }
-  
+}
