@@ -32,6 +32,7 @@ const Header = () => {
           <li className="px-2 hover:text-orange-600">
             <a href="">Cart</a>
           </li>
+          <li> 
             <button
             className="w-10"
             onClick={() => {
@@ -43,6 +44,7 @@ const Header = () => {
           >
             {btnNameReact}
           </button>
+          </li>
         </ul>
       </div>
     </div>
