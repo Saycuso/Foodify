@@ -1,4 +1,4 @@
-# Namaste React
+# Foodify
 
 # parcel
 - Dev build
