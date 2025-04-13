@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import Shimmer from "./Shimmer";
 import { Link } from "react-router-dom";
 import useOnlineStatus from "../utils/useOnlineStatus";
+const VegIcon = () => <CheckCircleIcon className="text-green-500 w-5 h-5" />;
+const NonVegIcon = () => <XCircleIcon className="text-red-500 w-5 h-5" />;
 
 const RestaurantCardDiscounted = withDiscountLabel(RestaurantCard);
 

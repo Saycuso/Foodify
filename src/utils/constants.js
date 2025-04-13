@@ -10,3 +10,6 @@ export const truncateText = (text, maxlength) => {
   
 export const MENU_URL = 
     "https://www.swiggy.com/dapi/menu/pl?page-type=REGULAR_MENU&complete-menu=true&lat=19.0073741&lng=73.1125136&restaurantId="
+
+export const OUTLET_URL =
+    "https://www.swiggy.com/dapi/menu/api/v1/json/layout-section/MENU_MULTI_OUTLET"

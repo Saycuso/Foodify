@@ -4,10 +4,14 @@ import { useParams } from "react-router-dom";
 import useRestaurantMenu from "../utils/useRestaurantMenu";
 import { useState } from "react";
 import RestaurantCategory from "./RestaurantCategory";
+import OutletPopUp from "./OutletPopUp";
+import useRestaurantOutletHook from "../utils/useRestaurantOutletHook";
+
 
 const RestaurantMenu = () => {
   const [ExpandedCategories, setExpandedCategories] = useState([]);
   const [ExpandedSubCategories, setExpandedSubCategories] = useState([]);
+  const [showPopup, setshowPopup] = useState(false)
   const [Filters, setFilters] = useState({
     isVeg: false,
     nonVeg: false,
@@ -16,6 +20,7 @@ const RestaurantMenu = () => {
 
   const { resId } = useParams();
   const resInfo = useRestaurantMenu(resId);
+  const outletData = useRestaurantOutletHook(resId);
 
   if (resInfo == null) return <Shimmer />;
 
@@ -26,13 +31,33 @@ const RestaurantMenu = () => {
     costForTwoMessage,
     totalRatingsString,
     hasBestsellerItems,
-    hasGuiltfreeItems
+    hasGuiltfreeItems,
+    areaName,
+    multiOutlet,
+    locality
   } = resInfo?.cards[2]?.card?.card?.info || {};
 
   const isPureVeg = resInfo?.cards[4]?.groupedCard?.cardGroupMap?.REGULAR?.cards[0].card.card.isPureVeg == true;
 
-  const { cards = [] } =
+  // Fetching the data for our OutletPopUp from the parent 
+    if (outletData == null) return <Shimmer/>;
+
+  // const { siblingOutlets = []} = OutletData?.card[0].card.card || {};
+   const {sla = []} =  resInfo?.cards[2]?.card?.card?.info || {};
+   
+   const {minDeliveryTime, maxDeliveryTime, lastMileTravelString } = sla;
+   const { cards = [] } =
     resInfo?.cards[4]?.groupedCard?.cardGroupMap?.REGULAR || {};
+
+    const currentInfo = {
+      resId,
+      locality,
+      areaName,
+      avgRatingString,
+      minDeliveryTime,
+      maxDeliveryTime,
+      lastMileTravelString,
+    };
 
   const filteredCards = cards.filter(
     (maincard) =>
@@ -56,11 +81,25 @@ const RestaurantMenu = () => {
         <div className="px-6">
           <h1>{name}</h1>
           <p>
-            {avgRatingString} ({totalRatingsString})
+            {avgRatingString} ({totalRatingsString}) - {costForTwoMessage}
           </p>
           <p>
-            {cuisines?.join(", ")} - {costForTwoMessage}
+            {cuisines?.join(", ")} 
           </p>
+          <div className="flex gap-0.5">
+            <span>Outlet - {areaName}</span>
+            {multiOutlet === true && (
+              <span className="hover hover:cursor-pointer" onClick={() => setshowPopup(true)}>▾</span>
+            )}
+            {showPopup && (
+              <OutletPopUp 
+              outletData = {outletData}
+              currentInfo={currentInfo}
+              onClose={()=>setshowPopup(false)} 
+              />
+            )
+            }
+          </div>
         </div>
 
         {/* FILTER SECTION */}

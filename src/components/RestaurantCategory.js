@@ -44,7 +44,7 @@ const RestaurantCategory = ({
       if (Filters.Guiltfree && !isGuiltfree) return false;
       return true;
     });
-  };
+  }; 
 
   const filteredItemCards = filterItems(itemCards);
 
