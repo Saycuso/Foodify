@@ -1,9 +1,5 @@
 // OutletPopUp.js
-import { useState } from "react";
-import useRestaurantOutletHook from "../utils/useRestaurantOutletHook";
-import Shimmer from "./Shimmer";
-import { Outlet } from "react-router-dom";
-import PopupWrapper from "../reuseables/PopupWrapper";
+import PopupWrapperGeneric from "../reuseables/PopupWrapperGeneric";
 
 const OutletPopUp = ({ onClose, outletData, currentInfo }) => {
   const {
@@ -23,7 +19,7 @@ const OutletPopUp = ({ onClose, outletData, currentInfo }) => {
   const siblingOutlets = siblingOutletCard?.card.siblingOutlets || [];
 
   return (    
-       <PopupWrapper onClose={onClose}>  
+       <PopupWrapperGeneric onClose={onClose}>  
         <h2>Current Outlet</h2>
         <div>
           <h1>
@@ -44,7 +40,7 @@ const OutletPopUp = ({ onClose, outletData, currentInfo }) => {
             </li>
           ))}
         </ul>
-        </PopupWrapper>
+        </PopupWrapperGeneric>
   );
 };
 

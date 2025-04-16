@@ -7,7 +7,6 @@ import RestaurantCategory from "./RestaurantCategory";
 import OutletPopUp from "./OutletPopUp";
 import useRestaurantOutletHook from "../utils/useRestaurantOutletHook";
 
-
 const RestaurantMenu = () => {
   const [ExpandedCategories, setExpandedCategories] = useState([]);
   const [ExpandedSubCategories, setExpandedSubCategories] = useState([]);

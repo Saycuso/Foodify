@@ -53,7 +53,7 @@ const Body = () => {
               value={SearchText}
               onChange={(e) => {
                 setSearchText(e.target.value);
-              }}
+              }}  
             />
             <button
               className=" bg-orange-200 px-4 rounded-r-lg hover:cursor-pointer border-gray-900"
