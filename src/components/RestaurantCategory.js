@@ -193,6 +193,8 @@ const RestaurantCategory = ({
                     {(item.card.info.variantsV2?.variantGroups || item.card.info.addons) && popupItemId === item.card.info.id &&  (
                       <CategoryItemPopUp
                        variantGroups = { item.card.info.variantsV2.variantGroups}
+                       baseprice = {item.card.info.price / 100 ||
+                        item.card.info.defaultPrice / 100 || {}}
                        addons = {item.card.info.addons || []}
                        onClose={()=>setPopupItemId(null)} 
                       />
