@@ -149,13 +149,15 @@ const RestaurantCategory = ({
                     >
                       Add
                     </button>
-                    {(item.card.info.variantsV2?.variantGroups || item.card.info.addons) && popupItemId === item.card.info.id &&  (
+                    {(item.card.info.variantsV2?.variantGroups || item.card.info.addons || item.card.info.variants?.variantGroups) && popupItemId === item.card.info.id &&  (
                       <CategoryItemPopUp
-                       variantGroups = { item.card.info.variantsV2.variantGroups || []}
-                       baseprice = {item.card.info.price / 100 ||
-                        item.card.info.defaultPrice / 100 || {}}
+                       variantGroups = { item.card.info.variantsV2.variantGroups?.length > 0 ? item.card.info.variantsV2.variantGroups : item.card.info.variants.variantGroups || []}
+                       pricingModels = {item.card.info.variantsV2.pricingModels || []}
                        addons = {item.card.info.addons || []}
+                       baseprice = {(item.card.info.price ??
+                        item.card.info.defaultPrice ?? 0)}
                        onClose={()=>setPopupItemId(null)} 
+                       isV2 = {!!item?.card?.info?.variantsV2}
                       />
                     )}
                     </div>
@@ -190,13 +192,15 @@ const RestaurantCategory = ({
                     >
                       Add
                     </button>
-                    {(item.card.info.variantsV2?.variantGroups || item.card.info.addons) && popupItemId === item.card.info.id &&  (
+                    {(item.card.info.variantsV2?.variantGroups || item.card.info.addons || item.card.info.variants?.variantGroups) && popupItemId === item.card.info.id &&  (
                       <CategoryItemPopUp
-                       variantGroups = { item.card.info.variantsV2.variantGroups}
-                       baseprice = {item.card.info.price / 100 ||
-                        item.card.info.defaultPrice / 100 || {}}
+                       variantGroups = { item.card.info.variantsV2.variantGroups?.length > 0 ? item.card.info.variantsV2.variantGroups : item.card.info.variants.variantGroups || []}
+                       baseprice = {(item.card.info.price ??
+                        item.card.info.defaultPrice ?? 0)}
                        addons = {item.card.info.addons || []}
                        onClose={()=>setPopupItemId(null)} 
+                       pricingModels = {item.card.info.variantsV2.pricingModels || []}
+                       isV2 = {!!item?.card?.info?.variantsV2}
                       />
                     )}
                     </div>

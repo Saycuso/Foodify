@@ -5,20 +5,23 @@ import { useState, useEffect } from "react";
 const CategoryItemPopUp = ({
   variantGroups = [],
   onClose,
+  baseprice,
   addons = [],
-  pricingModels = []
+  pricingModels = [],
+  isV2
 }) => {
-
+ 
 
  const [stepIndex, setStepIndex] = useState(0)
  const [selections, setSelections] = useState({
   variantSelections: { }, // groupId: Id
   addonSelections: { }, // groupId: [id, id, id, id]
+  totalAddonPrice: 0,
+  totalVariantPrice: 0
  })
 
- useEffect(()=> {
+ useEffect(()=> { 
   const currentGroup = variantGroups[stepIndex];
-
   if(!currentGroup) return;
   const groupId = currentGroup.groupId;
   const defaultVar = currentGroup.variations.find(v=> v.default === 1);
@@ -34,50 +37,171 @@ const CategoryItemPopUp = ({
  }, [stepIndex,variantGroups])
 
 
- const handleVariantChange = (groupId, variationId) => {
-  setSelections(prev => ({
-    ...prev,
-    variantSelections:{
-      ...prev.variantSelections,
-      [groupId]: variationId
+ useEffect(() => {
+  console.log("🔥 pricingModels just got updated", pricingModels);
+  const price = getMatchedPrice(); // maybe conditionally only if pricingModels.length > 0
+}, [pricingModels]);
+
+
+ const handleVariantChange = (groupId, variationId, price) => {
+  setSelections((prev) => {
+    let newVarianttotalPrice = prev.totalVariantPrice ;
+
+    const prevSelectionId = prev.variantSelections[groupId];
+    const prevSelection = prevSelectionId
+    ? variantGroups.find(group => group.groupId === groupId) 
+    ?. variations.find(v=> v.id === prevSelectionId)
+    : null;
+        
+    const prevprice = prevSelection?.price ?? 0;
+
+    const safePrice = price ?? 0;
+
+    newVarianttotalPrice = newVarianttotalPrice - prevprice + safePrice;
+    return{  ...prev,
+      variantSelections:{
+        ...prev.variantSelections,
+        [groupId]: variationId,
+      },
+      totalVariantPrice: newVarianttotalPrice,
     }
-  }))
+  })
  }
 
- const handleAddonToggle = (groupId, choiceId) => {
-  setSelections(prev => {
-    const current = prev.addonSelections[groupId] || [];
-    const updated = current.includes(choiceId) 
-    ? current.filter(id => id !== choiceId) 
-    : [...current, choiceId];
 
-    return{
-      ...prev,
-      addonSelections: {
-        ...prev.addonSelections,
-        [groupId] : updated
-      }
-    };
-  });
+ const handleAddonToggle = (groupId, choiceId, price, maxAddons) => {
+   setSelections((prev) => {
+     const current = prev.addonSelections[groupId] || [];
+     const isAlreadySelected = current.some((item)=> item.id === choiceId)
+     if (!isAlreadySelected && current.length >= maxAddons) {
+       alert(`You can only select up to ${maxAddons} addons.`);
+       return prev; // Don't update
+     }
+     let updated;
+     let newAddontotalPrice = prev.totalAddonPrice || 0;
+
+     if (isAlreadySelected){
+      updated = current.filter((item)=> item.id !== choiceId)
+      newAddontotalPrice -= price;
+     }else{
+      updated = [...current, {id: choiceId, price}]
+      newAddontotalPrice += price;
+     }
+   //  console.log("🧾 newAddontotalPrice:", newAddontotalPrice); // RIGHT HERE
+     return {
+       ...prev,
+       addonSelections: {
+         ...prev.addonSelections,
+         [groupId]: updated,
+       },
+       totalAddonPrice: newAddontotalPrice, 
+     }; 
+   });
  };
 
-// for Vaiations
+
+//  for totalprice
+
+const getMatchedPrice = () => {
+  const {
+    addonSelections,
+    variantSelections,
+    totalAddonPrice,
+    totalVariantPrice,
+  } = selections;
+
+  // Avoid matching if pricingModels are empty
+  if (!pricingModels || pricingModels.length === 0) {
+    if (!isV2 && addons.length > 0) {
+      console.log("Adding addon price:", totalAddonPrice);
+      return totalAddonPrice + totalVariantPrice;
+    } else if (addons.length > 0) {
+      console.log("newAddontotalPrice:", totalAddonPrice);
+      console.log("Base price + addon price:", (totalAddonPrice) + (baseprice || 0));
+      return (totalAddonPrice) + (baseprice || 0);
+    }
+  }
+  // Guard to ensure at least one addon is selected before matching addons
+  const hasSelectedAddons = Object.values(addonSelections).some(
+    (arr) => arr && arr.length > 0
+  );
+
+  for (const model of pricingModels) {
+    const variantMatch = model.variations.every(
+      ({ groupId, variationId }) =>
+        variantSelections[groupId]?.toString() === variationId.toString()
+    );
+
+    if (model.addonCombinations?.length > 0 && hasSelectedAddons) {
+      const selectedAddonPrice = Object.entries(addonSelections).reduce(
+        (total, [groupId, selectedAddons]) => {
+          selectedAddons.forEach((addon) => {
+            const match = model.addonCombinations.find(
+              (combo) =>
+                combo.groupId.toString() === groupId.toString() &&
+                combo.addonId.toString() === addon.id.toString()
+            );
+            if (match) {
+              const addonprice = addon?.price;
+
+              total += addonprice;
+            }
+          });
+          console.log(`🧮 Running total after group ${groupId}:`, total); // 👈 log each step
+          return total;
+        },
+     0
+      );
+       console.log("variant price",model.price)
+      if (variantMatch) {
+        const totalPrice = model.price + selectedAddonPrice;
+        console.log("🎯 Variant & addon match found in pricingModel");
+        return totalPrice
+      }
+    } else if (variantMatch) {
+      console.log("💰 Returning price (variant only match)");
+      return model.price;
+    }
+  }
+};
+
+
+
+
+const getFilteredAddons = () =>{
+  if(!pricingModels || pricingModels.length===0) 
+    return addons
+
+  const matchedmodel = pricingModels.find((model) =>
+    model.variations.every(({groupId, variationId})=> 
+    selections.variantSelections[groupId].toString() === variationId.toString()
+    )
+  );
+
+  return matchedmodel?.addonCombinations.length
+  ? addons.filter((addongroup)=>
+  addongroup.choices.some((choice)=>
+    matchedmodel.addonCombinations.some((combo)=>
+    combo.groupId.toString() === addongroup.groupId.toString() &&
+    combo.addonId.toString()=== choice.id.toString()
+    )
+  
+  )
+  ) : addons
+}
+  
+// for Vaiations 
  const currentGroup = variantGroups[stepIndex];
  const selectedId = currentGroup
    ? selections.variantSelections[currentGroup.groupId]
    : null;
- 
- const selectedVariation = currentGroup && selectedId
-   ? currentGroup.variations.find((v) => v.id === selectedId)
-   : null;
- 
+  const matchedPrice = getMatchedPrice();
   const previousGroup = stepIndex > 0 ? variantGroups[stepIndex - 1 ] : null;
   const previousId = previousGroup ? selections.variantSelections[previousGroup.groupId] : null;
   const previousvariation = previousGroup?.variations.find((v)=> v.id === previousId)
  
 // for Addons
   const totalSteps = variantGroups.length + (addons.length > 0 ? 1 : 0);
-
   return (
     <PopupWrapperGeneric onClose={onClose}>
       <div className="flex flex-col h-full">
@@ -102,7 +226,6 @@ const CategoryItemPopUp = ({
                   </h3>
                   <ul>
                     {currentGroup.variations.map((variation, id) => (
-                      
                         <label
                           key={variation.id || id}
                           htmlFor={`variant-${variation.id}`}
@@ -125,7 +248,8 @@ const CategoryItemPopUp = ({
                             onChange={() =>
                               handleVariantChange(
                                 currentGroup.groupId,
-                                variation.id
+                                variation.id,
+                                variation.price
                               )
                             }
                           />
@@ -135,7 +259,7 @@ const CategoryItemPopUp = ({
                 </div>
               )}
              {stepIndex === variantGroups?.length && addons?.length > 0 &&
-              addons.map((addongroup, index) => (
+              getFilteredAddons().map((addongroup, index) => (
                 <div key={addongroup.groupId || index}>
                   <h3 className="font-semibold text-lg px-3 py-2">
                     {addongroup.groupName}
@@ -164,8 +288,9 @@ const CategoryItemPopUp = ({
                           type="checkbox"
                           id={`addon-${choice.id}`}
                           className="accent-green-600"
+                          checked={selections.addonSelections[addongroup.groupId]?.some((item)=> item.id === choice.id) || false}
                           onChange={() => {
-                            handleAddonToggle(addongroup.groupId, choice.id);
+                            handleAddonToggle(addongroup.groupId, choice.id, choice.price || 0, addongroup.maxAddons);
                           }}
                         />
                       </label>
@@ -188,7 +313,7 @@ const CategoryItemPopUp = ({
           </div>
         ) : (
           <div className="p-5 border-t shadow-md bg-white sticky bottom-0 z-10 flex justify-between">
-            <span></span>
+            <span>₹{Number((matchedPrice || 0)/100)}</span>
             <button>Add item to cart</button>
           </div>
         )}

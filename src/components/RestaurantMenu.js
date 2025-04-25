@@ -82,88 +82,95 @@ const RestaurantMenu = () => {
           <p>
             {avgRatingString} ({totalRatingsString}) - {costForTwoMessage}
           </p>
-          <p>
-            {cuisines?.join(", ")} 
-          </p>
+          <p>{cuisines?.join(", ")}</p>
           <div className="flex gap-0.5">
             <span>Outlet - {areaName}</span>
             {multiOutlet === true && (
-              <span className="hover hover:cursor-pointer" onClick={() => setshowPopup(true)}>▾</span>
+              <span
+                className="hover hover:cursor-pointer"
+                onClick={() => setshowPopup(true)}
+              >
+                ▾
+              </span>
             )}
             {showPopup && (
-              <OutletPopUp 
-              outletData = {outletData}
-              currentInfo={currentInfo}
-              onClose={()=>setshowPopup(false)} 
+              <OutletPopUp
+                outletData={outletData}
+                currentInfo={currentInfo}
+                onClose={() => setshowPopup(false)}
               />
-            )
-            }
+            )}
           </div>
         </div>
 
         {/* FILTER SECTION */}
         <div className="px-6 py-4 flex gap-4">
-        {!isPureVeg && (
-             <>
-             <label className="flex items-center gap-2">
-             <input
-               type="checkbox"
-               name="isVeg"
-               checked={Filters.isVeg}
-               onChange={handleFilterChange}
-             />
-             Veg
-           </label>
-           <label className="flex items-center gap-2">
-             <input
-               type="checkbox"
-               name="nonVeg"
-               checked={Filters.nonVeg}
-               onChange={handleFilterChange}
-             />
-             Non-Veg
-           </label>
-           </>
-           )}
-           
-           {(hasBestsellerItems === true) && (
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              name="bestseller"
-              checked={Filters.bestseller}
-              onChange={handleFilterChange}
-            />
-            Bestseller
-          </label>
-           )}
-           {(hasGuiltfreeItems === true) && (
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              name="Guiltfree"
-              checked={Filters.isGuiltfree              }
-              onChange={handleFilterChange}
-            />
-            Guiltfree
-          </label>
-           )}
+          {!isPureVeg && (
+            <>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="isVeg"
+                  checked={Filters.isVeg}
+                  onChange={handleFilterChange}
+                />
+                Veg
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="nonVeg"
+                  checked={Filters.nonVeg}
+                  onChange={handleFilterChange}
+                />
+                Non-Veg
+              </label>
+            </>
+          )}
+
+          {hasBestsellerItems === true && (
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                name="bestseller"
+                checked={Filters.bestseller}
+                onChange={handleFilterChange}
+              />
+              Bestseller
+            </label>
+          )}
+          {hasGuiltfreeItems === true && (
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                name="Guiltfree"
+                checked={Filters.isGuiltfree}
+                onChange={handleFilterChange}
+              />
+              Guiltfree
+            </label>
+          )}
         </div>
 
         {/* CATEGORY LIST */}
         <div className="px-6">
           <ul>
-            {filteredCards.map((cardcat, index) => (
-              <RestaurantCategory
-                key={`category-${cardcat.card.card.categoryId || cardcat.card.card.title || index}`}
-                data={cardcat.card.card}
-                Filters={Filters}
-                ExpandedCategories={ExpandedCategories}
-                setExpandedCategories={setExpandedCategories}
-                ExpandedSubCategories={ExpandedSubCategories}
-                setExpandedSubCategories={setExpandedSubCategories}
-              />
-            ))}
+            {filteredCards.map((cardcat, index) => {
+              console.log(
+                `categoryId: ${cardcat.card.card.categoryId}, title: ${cardcat.card.card.title}, index: ${index}`
+              );
+              return (
+                <RestaurantCategory
+                  key={`category-${cardcat.card.card.categoryId}-${cardcat.card.card.title || index}`}
+                  data={cardcat.card.card}
+                  Filters={Filters}
+                  ExpandedCategories={ExpandedCategories}
+                  setExpandedCategories={setExpandedCategories}
+                  ExpandedSubCategories={ExpandedSubCategories}
+                  setExpandedSubCategories={setExpandedSubCategories}
+                />
+              );
+            })}
           </ul>
         </div>
       </div>
