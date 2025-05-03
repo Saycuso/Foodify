@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { CATEGORY_IMG_URL } from "../utils/constants";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CategoryItemPopUp from "./CategoryItemPopUp";
 
 const RestaurantCategory = ({
@@ -10,8 +10,17 @@ const RestaurantCategory = ({
   setExpandedCategories,
   ExpandedSubCategories,
   setExpandedSubCategories,
+  popupItemId,
+  setPopupItemId,
+  isvaraddPopupVisible,
+  totalItems,
+  addItem,
+  removeItem,
+  setIsVarAddPopUpVisible,
+  showCartFooter,
+  setShowCartFooter,
+  cartItems,
 }) => {
-  const [popupItemId,setPopupItemId] = useState(null)
   const { title, itemCards = [], categories, categoryId } = data;
   const isExpanded = ExpandedCategories.includes(categoryId);
   const hasSubCategories = categories?.length > 0;
@@ -93,83 +102,137 @@ const RestaurantCategory = ({
         <ul className="mt-2 space-y-2">
           {categories?.length > 0
             ? categories.map((sub) => {
-                const subExpanded = ExpandedSubCategories.includes(
-                  sub.categoryId
-                );
-                const filteredSubItems = filterItems(sub.itemCards);
+              const subExpanded = ExpandedSubCategories.includes(
+                sub.categoryId
+              );
+              const filteredSubItems = filterItems(sub.itemCards);
 
-                return (
-                  <li key={`sub-${sub.categoryId}-${sub.title}`}>
-                    {filteredSubItems.length > 0 && (
-                      <div
-                        onClick={() => handleSubCategoryClick(sub.categoryId)}
-                        className="flex justify-between items-center py-2 bg-gray-50 cursor-pointer hover:bg-gray-100"
-                      >
-                        <span className="flex items-center gap-2 text-base">
-                          {sub.title}
-                          <span className="text-sm text-gray-500">
-                            ({filteredSubItems.length})
-                          </span>
+              return (
+                <li key={`sub-${sub.categoryId}-${sub.title}`}>
+                  {filteredSubItems.length > 0 && (
+                    <div
+                      onClick={() => handleSubCategoryClick(sub.categoryId)}
+                      className="flex justify-between items-center py-2 bg-gray-50 cursor-pointer hover:bg-gray-100"
+                    >
+                      <span className="flex items-center gap-2 text-base">
+                        {sub.title}
+                        <span className="text-sm text-gray-500">
+                          ({filteredSubItems.length})
                         </span>
-                        <span>
-                          {subExpanded ? (
-                            <ChevronUp size={18} />
-                          ) : (
-                            <ChevronDown size={18} />
-                          )}
-                        </span>
-                      </div>
-                    )}
+                      </span>
+                      <span>
+                        {subExpanded ? (
+                          <ChevronUp size={18} />
+                        ) : (
+                          <ChevronDown size={18} />
+                        )}
+                      </span>
+                    </div>
+                  )}
 
-                    {subExpanded && (
-                      <ul className="mt-1 space-y-1">
-                        {filteredSubItems.map((item) => (
+                  {subExpanded && (
+                    <ul className="mt-1 space-y-1">
+                      {filteredSubItems.map((item) => {
+                        const matchedItem = cartItems.find((i) => i.id === item.card.info.id);
+                        const count = matchedItem?.count || 0;
+                        return (
                           <li
                             key={`item-${
                               item.card.info.id || item.card.info.name
                             }`}
                             className="text-[18px] text-gray-700 border-b border-gray-200 pb-1"
                           >
-                            
                             <div className="flex justify-between">
-                    <span>
-                      {item.card.info.name}
-                      <br />₹
-                      {item.card.info.price / 100 ||
-                        item.card.info.defaultPrice / 100}
-                    </span>
-                    <div className="relative w-[156px]">
-                    <img    
-                      className="w-full h-[144px] rounded-xl object-cover shadow"
-                      alt="res-logo"
-                      src={CATEGORY_IMG_URL + item?.card?.info?.imageId}
-                    />
-                    <button className="absolute left-1/2 -translate-x-1/2 bottom-0 bg-white border border-gray-300 text-green-600 font-semibold px-4 py-1 rounded-md shadow hover:shadow-md"
-                     onClick={() => setPopupItemId(item.card.info.id)}
-                    >
-                      Add
-                    </button>
-                    {(item.card.info.variantsV2?.variantGroups || item.card.info.addons || item.card.info.variants?.variantGroups) && popupItemId === item.card.info.id &&  (
-                      <CategoryItemPopUp
-                       variantGroups = { item.card.info.variantsV2.variantGroups?.length > 0 ? item.card.info.variantsV2.variantGroups : item.card.info.variants.variantGroups || []}
-                       pricingModels = {item.card.info.variantsV2.pricingModels || []}
-                       addons = {item.card.info.addons || []}
-                       baseprice = {(item.card.info.price ??
-                        item.card.info.defaultPrice ?? 0)}
-                       onClose={()=>setPopupItemId(null)} 
-                       isV2 = {!!item?.card?.info?.variantsV2}
-                      />
-                    )}
-                    </div>
-                  </div>
+                              <span>
+                                {item.card.info.name}
+                                <br />₹
+                                {item.card.info.price / 100 ||
+                                  item.card.info.defaultPrice / 100}
+                              </span>
+                              <div className="relative w-[156px]">
+                                <img
+                                  className="w-full h-[144px] rounded-xl object-cover shadow"
+                                  alt="res-logo"
+                                  src={
+                                    CATEGORY_IMG_URL + item?.card?.info?.imageId
+                                  }
+                                />
+                                <div
+                                  className={`absolute left-1/2 -translate-x-1/2 bottom-0 bg-white border border-gray-300 text-green-600 font-semibold px-4 py-1 rounded-md shadow hover:shadow-md ${
+                                    count === 0
+                                      ? `hover:cursor-pointer`
+                                      : `cursor-default`
+                                  }`}
+                                  onClick={() => {
+                                    if (count === 0) {
+                                      setIsVarAddPopUpVisible(true);
+                                      setPopupItemId(item.card.info.id);
+                                    }
+                                  }}>
+                                  {count > 0 ? (
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        onClick={() =>
+                                          removeItem(item.card.info)
+                                        }>-</button>
+                                      <div>{count}</div>
+                                      <button
+                                        onClick={() => addItem(item.card.info)}
+                                      >+</button>
+                                    </div>) : (<div>Add</div>)}
+                                </div>
+
+                                {(item.card.info.variantsV2?.variantGroups ||
+                                  item.card.info.addons ||
+                                  item.card.info.variants?.variantGroups) &&
+                                  popupItemId === item.card.info.id &&
+                                  isvaraddPopupVisible && (
+                                    <CategoryItemPopUp
+                                      item={item?.card?.info}
+                                      variantGroups={
+                                        item.card.info.variantsV2.variantGroups
+                                          ?.length > 0
+                                          ? item.card.info.variantsV2
+                                              .variantGroups
+                                          : item.card.info.variants
+                                              .variantGroups || []
+                                      }
+                                      pricingModels={
+                                        item.card.info.variantsV2
+                                          .pricingModels || []
+                                      }
+                                      addons={item.card.info.addons || []}
+                                      baseprice={
+                                        item.card.info.price ??
+                                        item.card.info.defaultPrice ??
+                                        0
+                                      }
+                                      onClose={() => setPopupItemId(null)}
+                                      onAddToCart={() => {
+                                        setIsVarAddPopUpVisible(false);
+                                      }}
+                                      isV2={!!item?.card?.info?.variantsV2}
+                                      totalItems={totalItems}
+                                      addItem={addItem}
+                                      removeItem={removeItem}
+                                      cartItems={cartItems}
+                                      setShowCartFooter={setShowCartFooter}
+                                    />
+                                  )}
+                              </div>
+                            </div>
                           </li>
-                        ))}
-                      </ul>
-                    )}
-                  </li>
-                );
-              })
-            : filteredItemCards.map((item) => (
+                        );
+                      })}
+                    </ul>
+                  )}
+                </li>
+              );
+            })
+            : filteredItemCards.map((item) => {
+              const matchedItem = cartItems.find((i) => i.id === item.card.info.id);
+              const count = matchedItem?.count || 0;
+              return (
                 <li
                   key={item?.card?.info?.id || item?.card?.info?.name}
                   className="text-lg text-gray-700 border-b border-gray-200 py-2"
@@ -182,31 +245,74 @@ const RestaurantCategory = ({
                         item.card.info.defaultPrice / 100}
                     </span>
                     <div className="relative w-[156px]">
-                    <img    
-                      className="w-full h-[144px] rounded-xl object-cover shadow"
-                      alt="res-logo"
-                      src={CATEGORY_IMG_URL + item?.card?.info?.imageId}
-                    />
-                    <button className="absolute left-1/2 -translate-x-1/2 bottom-0 bg-white border border-gray-300 text-green-600 font-semibold px-4 py-1 rounded-md shadow hover:shadow-md"
-                     onClick={() => setPopupItemId(item.card.info.id)}
-                    >
-                      Add
-                    </button>
-                    {(item.card.info.variantsV2?.variantGroups || item.card.info.addons || item.card.info.variants?.variantGroups) && popupItemId === item.card.info.id &&  (
-                      <CategoryItemPopUp
-                       variantGroups = { item.card.info.variantsV2.variantGroups?.length > 0 ? item.card.info.variantsV2.variantGroups : item.card.info.variants.variantGroups || []}
-                       baseprice = {(item.card.info.price ??
-                        item.card.info.defaultPrice ?? 0)}
-                       addons = {item.card.info.addons || []}
-                       onClose={()=>setPopupItemId(null)} 
-                       pricingModels = {item.card.info.variantsV2.pricingModels || []}
-                       isV2 = {!!item?.card?.info?.variantsV2}
+                      <img
+                        className="w-full h-[144px] rounded-xl object-cover shadow"
+                        alt="res-logo"
+                        src={CATEGORY_IMG_URL + item?.card?.info?.imageId}
                       />
-                    )}
+                      <div
+                        className={`absolute left-1/2 -translate-x-1/2 bottom-0 bg-white border border-gray-300 text-green-600 font-semibold px-4 py-1 rounded-md shadow hover:shadow-md ${count === 0
+                            ? `hover:cursor-pointer`
+                            : `cursor-default`
+                          }`}
+                        onClick={() => {
+                          if (count === 0) {
+                            setIsVarAddPopUpVisible(true);
+                            setPopupItemId(item.card.info.id);
+                          }
+                        }}>
+                        {count > 0 ? (
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() =>
+                                removeItem(item.card.info)
+                              }>-</button>
+                            <div>{count}</div>
+                            <button
+                              onClick={() => addItem(item.card.info)}
+                            >+</button>
+                          </div>) : (<div>Add</div>)}
+                      </div>
+
+                      {(item.card.info.variantsV2?.variantGroups ||
+                        item.card.info.addons ||
+                        item.card.info.variants?.variantGroups) &&
+                        popupItemId === item.card.info.id &&
+                        isvaraddPopupVisible && (
+                          <CategoryItemPopUp
+                            item={item.card.info}
+                            variantGroups={
+                              item.card.info.variantsV2.variantGroups?.length >
+                                0
+                                ? item.card.info.variantsV2.variantGroups
+                                : item.card.info.variants.variantGroups || []
+                            }
+                            baseprice={
+                              item.card.info.price ??
+                              item.card.info.defaultPrice ??
+                              0
+                            }
+                            addons={item.card.info.addons || []}
+                            onClose={() => setPopupItemId(null)}
+                            pricingModels={
+                              item.card.info.variantsV2.pricingModels || []
+                            }
+                            onAddToCart={() => {
+                              setIsVarAddPopUpVisible(false);
+                            }}
+                            isV2={!!item?.card?.info?.variantsV2}
+                            totalItems={totalItems}
+                            addItem={addItem}
+                            removeItem={removeItem}
+                            cartItems={cartItems}
+                            setShowCartFooter={setShowCartFooter}
+                          />
+                        )}
                     </div>
                   </div>
                 </li>
-              ))}
+              );
+            })}
         </ul>
       )}
     </li>

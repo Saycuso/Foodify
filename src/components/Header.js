@@ -30,7 +30,7 @@ const Header = () => {
             <Link to="/grocery">Grocery</Link>
           </li>
           <li className="px-2 hover:text-orange-600">
-            <a href="">Cart</a>
+            <Link to="/Cart">Cart</Link>
           </li>
           <li> 
             <button

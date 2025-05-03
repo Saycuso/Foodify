@@ -2,24 +2,47 @@
 import Shimmer from "./Shimmer";
 import { useParams } from "react-router-dom";
 import useRestaurantMenu from "../utils/useRestaurantMenu";
-import { useState } from "react";
+import { useState, useEffect} from "react";
 import RestaurantCategory from "./RestaurantCategory";
 import OutletPopUp from "./OutletPopUp";
 import useRestaurantOutletHook from "../utils/useRestaurantOutletHook";
+import useCartfooter from "../utils/useCartfooter";
+import { useNavigate } from "react-router-dom";
 
 const RestaurantMenu = () => {
   const [ExpandedCategories, setExpandedCategories] = useState([]);
   const [ExpandedSubCategories, setExpandedSubCategories] = useState([]);
-  const [showPopup, setshowPopup] = useState(false)
+  const [showPopupOutlet, setshowPopupOutlet] = useState(false)
+  const [popupItemId,setPopupItemId] = useState(null)
+  const [isvaraddPopupVisible, setIsVarAddPopUpVisible] = useState(false);
+  const [showCartFooter, setShowCartFooter] = useState(false);
   const [Filters, setFilters] = useState({
     isVeg: false,
     nonVeg: false,
     bestseller: false,
   });
 
+  const { cartItems,
+    addItem,
+    removeItem,
+    clearCart,
+    totalItems} = useCartfooter(); // for the footerpopup of cart 
+
+  useEffect(() => {
+    if (cartItems.length > 0) {
+      setShowCartFooter(true);
+    } else {
+      setShowCartFooter(false);
+    }
+  }, [cartItems]);
+  
+
+  
   const { resId } = useParams();
   const resInfo = useRestaurantMenu(resId);
   const outletData = useRestaurantOutletHook(resId);
+  const navigate = useNavigate();
+  
 
   if (resInfo == null) return <Shimmer />;
 
@@ -88,16 +111,16 @@ const RestaurantMenu = () => {
             {multiOutlet === true && (
               <span
                 className="hover hover:cursor-pointer"
-                onClick={() => setshowPopup(true)}
+                onClick={() => setshowPopupOutlet(true)}
               >
                 ▾
               </span>
             )}
-            {showPopup && (
+            {showPopupOutlet && (
               <OutletPopUp
                 outletData={outletData}
                 currentInfo={currentInfo}
-                onClose={() => setshowPopup(false)}
+                onClose={() => setshowPopupOutlet(false)}
               />
             )}
           </div>
@@ -161,18 +184,41 @@ const RestaurantMenu = () => {
               );
               return (
                 <RestaurantCategory
-                  key={`category-${cardcat.card.card.categoryId}-${cardcat.card.card.title || index}`}
+                  key={`category-${cardcat.card.card.categoryId}-${
+                    cardcat.card.card.title || index
+                  }`}
                   data={cardcat.card.card}
                   Filters={Filters}
                   ExpandedCategories={ExpandedCategories}
                   setExpandedCategories={setExpandedCategories}
                   ExpandedSubCategories={ExpandedSubCategories}
                   setExpandedSubCategories={setExpandedSubCategories}
+                  popupItemId={popupItemId}
+                  setPopupItemId={setPopupItemId}
+                  isvaraddPopupVisible={isvaraddPopupVisible}
+                  setIsVarAddPopUpVisible={setIsVarAddPopUpVisible}
+                  addItem={addItem}
+                  removeItem={removeItem}
+                  totalItems={totalItems}
+                  showCartFooter={showCartFooter}
+                  setShowCartFooter={setShowCartFooter}
+                  cartItems = {cartItems}
                 />
               );
             })}
           </ul>
         </div>
+        {totalItems > 0 && showCartFooter && (
+          <div className="fixed bottom-0 left-0 right-0 bg-green-600 text-white flex justify-between items-center px-4 py-3 shadow-md z-50">
+            <span>{totalItems} items added</span>
+            <button
+              className="bg-white text-green-600 px-4 py-1 rounded font-bold"
+              onClick={() =>{navigate("/Cart")}}// or whatever logic
+            >
+              VIEW CART
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

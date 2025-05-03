@@ -39,7 +39,7 @@ const Body = () => {
     return <h1> Looks like you are offline, Please check your Internet connection</h1>
   }
   // Conditional Rendering
-  return ListOfRestaurants.length == 0 ? (
+  return ListOfRestaurants.length === 0 ? (
     <Shimmer />
   ) : (
     <div className="body">

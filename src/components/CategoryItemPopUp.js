@@ -3,14 +3,20 @@ import PopupWrapperGeneric from "../reuseables/PopupWrapperGeneric";
 import { useState, useEffect } from "react";
 
 const CategoryItemPopUp = ({
+  item,
   variantGroups = [],
   onClose,
   baseprice,
   addons = [],
   pricingModels = [],
-  isV2
+  onAddToCart,
+  isV2,
+  totalItems,
+  addItem,
+  cartItems,
+  setShowCartFooter
 }) => {
- 
+
 
  const [stepIndex, setStepIndex] = useState(0)
  const [selections, setSelections] = useState({
@@ -167,7 +173,6 @@ const getMatchedPrice = () => {
 
 
 
-
 const getFilteredAddons = () =>{
   if(!pricingModels || pricingModels.length===0) 
     return addons
@@ -314,7 +319,18 @@ const getFilteredAddons = () =>{
         ) : (
           <div className="p-5 border-t shadow-md bg-white sticky bottom-0 z-10 flex justify-between">
             <span>₹{Number((matchedPrice || 0)/100)}</span>
-            <button>Add item to cart</button>
+            <button onClick={()=>{
+              console.log("Add clicked");
+              addItem({
+                id:item.id,
+                name: item.name,
+                price: matchedPrice || baseprice,   
+                variants: selections.variantSelections,
+                addons: selections.addonSelections
+              });
+              if(onAddToCart) onAddToCart();
+              setShowCartFooter(true);         
+            }}>Add item to cart</button>
           </div>
         )}
       </div>

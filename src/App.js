@@ -6,15 +6,21 @@ import { createBrowserRouter, RouterProvider, Outlet} from "react-router-dom";
 import About from "./components/About";
 import Contact from "./components/Contact";
 import Error from "./components/Error";
+import Cart from "./components/Cart";
 import RestaurantMenu from "./components/RestaurantMenu";
+import { useLocation } from "react-router-dom";
+import 'leaflet/dist/leaflet.css';
+
 
 
 const Grocery = lazy(()=> import("./components/Grocery"))
 
 const AppLayout = () => {
+  const location = useLocation();
+  const isCartPage = location.pathname === "/Cart"
   return (
     <div className="app">
-      <Header />
+      {!isCartPage && <Header />}
       <Outlet />  {/* 👈 This tells React where to render child routes */}
     </div>
   );
@@ -47,6 +53,10 @@ const appRouter = createBrowserRouter([
       {
         path: "/restaurants/:resId",
         element: <RestaurantMenu/>
+      },
+      {
+        path: "/Cart",
+        element: <Cart/>
       }
     ]
   }, 
