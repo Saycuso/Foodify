@@ -1,15 +1,22 @@
+// useCartFooter.js 
+import { isEqual } from "lodash";
 import { useState } from "react";
+import _ from "lodash";
 
-const useCartfooter = () => {
+export function useCartfooter(){
   const [cartItems, setCartItems] = useState([]);
+
 
   const addItem = (item) => {
     setCartItems((prev) => {
-      const exists = prev.find((i) => i.id === item.id);
+      const exists = prev.find(
+        (i) => 
+          i.id === item.id &&
+          _.isEqual(i.variants,item.variants) &&
+          _.isEqual(i.addons,item.addons) 
+      );
       if (exists) {
-        return prev.map((i) =>
-          i.id === item.id ? { ...i, count: i.count + 1 } : i
-        );
+        return prev
       }
       return [...prev, { ...item, count: 1 }];
     });
@@ -36,4 +43,3 @@ const useCartfooter = () => {
   };
 };
 
-export default useCartfooter;

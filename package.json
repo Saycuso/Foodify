@@ -26,6 +26,7 @@
         "@heroicons/react": "^2.2.0",
         "@tailwindcss/postcss": "^4.0.17",
         "leaflet": "^1.9.4",
+        "lodash": "^4.17.21",
         "lodash.debounce": "^4.0.8",
         "lucide-react": "^0.487.0",
         "react": "^19.0.0",

@@ -6,9 +6,9 @@ import { useState, useEffect} from "react";
 import RestaurantCategory from "./RestaurantCategory";
 import OutletPopUp from "./OutletPopUp";
 import useRestaurantOutletHook from "../utils/useRestaurantOutletHook";
-import useCartfooter from "../utils/useCartfooter";
+import { useCartfooter } from "../utils/useCartfooter";
 import { useNavigate } from "react-router-dom";
-
+  
 const RestaurantMenu = () => {
   const [ExpandedCategories, setExpandedCategories] = useState([]);
   const [ExpandedSubCategories, setExpandedSubCategories] = useState([]);
@@ -16,6 +16,7 @@ const RestaurantMenu = () => {
   const [popupItemId,setPopupItemId] = useState(null)
   const [isvaraddPopupVisible, setIsVarAddPopUpVisible] = useState(false);
   const [showCartFooter, setShowCartFooter] = useState(false);
+  const [showCustomizationPopup, setShowCustomizationPopup] = useState(false);
   const [Filters, setFilters] = useState({
     isVeg: false,
     nonVeg: false,
@@ -203,13 +204,15 @@ const RestaurantMenu = () => {
                   showCartFooter={showCartFooter}
                   setShowCartFooter={setShowCartFooter}
                   cartItems = {cartItems}
+                  showCustomizationPopup = {showCustomizationPopup}
+                  setShowCustomizationPopup = {setShowCustomizationPopup}
                 />
               );
             })}
           </ul>
         </div>
         {totalItems > 0 && showCartFooter && (
-          <div className="fixed bottom-0 left-0 right-0 bg-green-600 text-white flex justify-between items-center px-4 py-3 shadow-md z-50">
+          <div className="fixed bottom-0 left-0 right-0 bg-green-600 text-white flex justify-between items-center px-4 py-3 shadow-md z-40">
             <span>{totalItems} items added</span>
             <button
               className="bg-white text-green-600 px-4 py-1 rounded font-bold"

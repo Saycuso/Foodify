@@ -1,7 +1,9 @@
+// RestaurantCategory.js
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { CATEGORY_IMG_URL } from "../utils/constants";
 import { useEffect, useState } from "react";
 import CategoryItemPopUp from "./CategoryItemPopUp";
+import CustomizationPopUp from "./CustomizationPopUp";
 
 const RestaurantCategory = ({
   data,
@@ -20,11 +22,51 @@ const RestaurantCategory = ({
   showCartFooter,
   setShowCartFooter,
   cartItems,
+  showCustomizationPopup,
+  setShowCustomizationPopup,
 }) => {
   const { title, itemCards = [], categories, categoryId } = data;
   const isExpanded = ExpandedCategories.includes(categoryId);
   const hasSubCategories = categories?.length > 0;
   const hasItemsOnly = itemCards?.length > 0 && !hasSubCategories;
+  const [lastCustomisationMap, setLastCustomisationMap] = useState({});
+  const [selections, setSelections] = useState({
+    variantSelections: { }, // groupId: Id
+    addonSelections: { }, // groupId: [id, id, id, id]
+    totalAddonPrice: 0,
+    totalVariantPrice: 0
+   })
+
+   const { variantSelections, addonSelections, totalAddonPrice, totalVariantPrice } = selections;
+
+
+  const handleAddItem = (itemwithCustomisation) => {
+    // Deep clone the item to prevent reference issues
+    const clonedItem = JSON.parse(JSON.stringify(itemwithCustomisation));
+
+    addItem(itemwithCustomisation);
+
+    setLastCustomisationMap((prev)=> ({
+      ...prev,
+      [itemwithCustomisation.id] : itemwithCustomisation
+    }));
+    console.log("Storing customization for", itemwithCustomisation.id, {
+      id:itemwithCustomisation.id,
+      name:itemwithCustomisation.name,
+   
+      variants: itemwithCustomisation.variants,
+      addons: itemwithCustomisation.addons,
+    })
+  };
+
+  const resetSelections = () => {
+    setSelections({
+      variantSelections: {},
+      addonSelections: {},
+      totalAddonPrice: 0,
+      totalVariantPrice: 0,
+    })
+  }
 
   const handleCategoryClick = () => {
     if (isExpanded) {
@@ -45,6 +87,14 @@ const RestaurantCategory = ({
       setExpandedSubCategories([...ExpandedSubCategories, subCategoryId]);
     }
   };
+
+  const handlePopup = (item) => {
+    console.log("Popup triggered with item:", item
+    );
+      setPopupItemId(item)
+      setIsVarAddPopUpVisible(true)
+      setShowCustomizationPopup(false)
+  }
 
   // 🧠 FILTER FUNCTION
   const filterItems = (items = []) => {
@@ -74,6 +124,7 @@ const RestaurantCategory = ({
     (sum, sub) => sum + sub.filtereditemCardsofSub.length,
     0
   );
+  
 
   return (
     <li className="font-semibold text-lg">
@@ -135,6 +186,7 @@ const RestaurantCategory = ({
                       {filteredSubItems.map((item) => {
                         const matchedItem = cartItems.find((i) => i.id === item.card.info.id);
                         const count = matchedItem?.count || 0;
+                        const previous = lastCustomisationMap[item.card.info.id]
                         return (
                           <li
                             key={`item-${
@@ -177,15 +229,12 @@ const RestaurantCategory = ({
                                         }>-</button>
                                       <div>{count}</div>
                                       <button
-                                        onClick={() => addItem(item.card.info)}
+                                        onClick={() => {addItem(item.card.info) }}
                                       >+</button>
                                     </div>) : (<div>Add</div>)}
                                 </div>
 
-                                {(item.card.info.variantsV2?.variantGroups ||
-                                  item.card.info.addons ||
-                                  item.card.info.variants?.variantGroups) &&
-                                  popupItemId === item.card.info.id &&
+                                {popupItemId === item.card.info.id &&
                                   isvaraddPopupVisible && (
                                     <CategoryItemPopUp
                                       item={item?.card?.info}
@@ -217,6 +266,13 @@ const RestaurantCategory = ({
                                       removeItem={removeItem}
                                       cartItems={cartItems}
                                       setShowCartFooter={setShowCartFooter}
+                                      addonSelections={addonSelections}
+                                      variantSelections={variantSelections}
+                                      totalAddonPrice={totalAddonPrice}
+                                      totalVariantPrice={totalVariantPrice}
+                                      setSelections = {setSelections}
+                                      selections = {selections}
+                                      resetSelections = {resetSelections}
                                     />
                                   )}
                               </div>
@@ -232,6 +288,8 @@ const RestaurantCategory = ({
             : filteredItemCards.map((item) => {
               const matchedItem = cartItems.find((i) => i.id === item.card.info.id);
               const count = matchedItem?.count || 0;
+              const previous = lastCustomisationMap[item.card.info.id]      
+    
               return (
                 <li
                   key={item?.card?.info?.id || item?.card?.info?.name}
@@ -265,11 +323,13 @@ const RestaurantCategory = ({
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() =>
-                                removeItem(item.card.info)
+                                console.log("hello")
                               }>-</button>
                             <div>{count}</div>
                             <button
-                              onClick={() => addItem(item.card.info)}
+                              onClick={() => {
+                                setShowCustomizationPopup(true)  
+                              }}
                             >+</button>
                           </div>) : (<div>Add</div>)}
                       </div>
@@ -281,7 +341,7 @@ const RestaurantCategory = ({
                         isvaraddPopupVisible && (
                           <CategoryItemPopUp
                             item={item.card.info}
-                            variantGroups={
+                            variantGroups={ 
                               item.card.info.variantsV2.variantGroups?.length >
                                 0
                                 ? item.card.info.variantsV2.variantGroups
@@ -302,12 +362,32 @@ const RestaurantCategory = ({
                             }}
                             isV2={!!item?.card?.info?.variantsV2}
                             totalItems={totalItems}
-                            addItem={addItem}
-                            removeItem={removeItem}
                             cartItems={cartItems}
                             setShowCartFooter={setShowCartFooter}
+                            addonSelections={addonSelections}
+                            variantSelections={variantSelections}
+                            totalAddonPrice={totalAddonPrice}
+                            totalVariantPrice={totalVariantPrice}
+                            setSelections = {setSelections}
+                            selections = {selections}
+                            handleAddItem = {handleAddItem} 
+                            resetSelections = {resetSelections}
                           />
                         )}
+                        { (showCustomizationPopup && count > 0) &&
+                         (
+                          <CustomizationPopUp
+                          item={item.card.info}
+                          onClose={() => setShowCustomizationPopup(false)}  
+                          addonSelections={addonSelections}
+                          variantSelections={variantSelections}
+                          handleAddItem = {handleAddItem}   
+                          previous = {previous}       
+                          setShowCustomizationPopup = {setShowCustomizationPopup}        
+                          handlePopup = {handlePopup}         
+                          />
+                         )
+                        }
                     </div>
                   </div>
                 </li>
