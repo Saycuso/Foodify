@@ -24,11 +24,13 @@
     },
     "dependencies": {
         "@heroicons/react": "^2.2.0",
+        "@parcel/transformer-postcss": "^2.15.0",
         "@tailwindcss/postcss": "^4.0.17",
         "leaflet": "^1.9.4",
         "lodash": "^4.17.21",
         "lodash.debounce": "^4.0.8",
         "lucide-react": "^0.487.0",
+        "postcss": "^8.5.3",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
         "react-leaflet": "^5.0.0",

@@ -8,12 +8,15 @@ import OutletPopUp from "./OutletPopUp";
 import useRestaurantOutletHook from "../utils/useRestaurantOutletHook";
 import { useCartfooter } from "../utils/useCartfooter";
 import { useNavigate } from "react-router-dom";
-  
+import { useRestaurant } from "./RestaurantContext";
+
 const RestaurantMenu = () => {
+  // --- All State Hooks First ---
+  // These must be called unconditionally at the top level
   const [ExpandedCategories, setExpandedCategories] = useState([]);
   const [ExpandedSubCategories, setExpandedSubCategories] = useState([]);
-  const [showPopupOutlet, setshowPopupOutlet] = useState(false)
-  const [popupItemId,setPopupItemId] = useState(null)
+  const [showPopupOutlet, setshowPopupOutlet] = useState(false);
+  const [popupItemId,setPopupItemId] = useState(null);
   const [isvaraddPopupVisible, setIsVarAddPopUpVisible] = useState(false);
   const [showCartFooter, setShowCartFooter] = useState(false);
   const [showCustomizationPopup, setShowCustomizationPopup] = useState(false);
@@ -23,30 +26,49 @@ const RestaurantMenu = () => {
     bestseller: false,
   });
 
-  const { cartItems,
+  // --- All Other Hooks ---
+  // These must also be called unconditionally at the top level
+  const { setRestaurantName } = useRestaurant();
+  const {
+    cartItems,
     addItem,
     removeItem,
     clearCart,
-    totalItems} = useCartfooter(); // for the footerpopup of cart 
+    totalItems
+  } = useCartfooter(); // for the footerpopup of cart
+  const { resId } = useParams();
+  const resInfo = useRestaurantMenu(resId); // Custom hook
+  const outletData = useRestaurantOutletHook(resId); // Custom hook
+  const navigate = useNavigate(); // Hook from react-router-dom
 
+  // --- Effects ---
+  // These must be called unconditionally at the top level
   useEffect(() => {
     if (cartItems.length > 0) {
       setShowCartFooter(true);
     } else {
       setShowCartFooter(false);
     }
-  }, [cartItems]);
-  
+  }, [cartItems]); // Dependency array ensures this runs when cartItems changes
 
-  
-  const { resId } = useParams();
-  const resInfo = useRestaurantMenu(resId);
-  const outletData = useRestaurantOutletHook(resId);
-  const navigate = useNavigate();
-  
+  useEffect(()=> {
+    // This effect is now called unconditionally in every render,
+    // but the logic inside only runs if resInfo and its name property exist.
+    if(resInfo?.cards[2]?.card?.card?.info?.name){
+      setRestaurantName(resInfo.cards[2].card.card.info.name);
+    }
+  }, [resInfo, setRestaurantName]); // Depend on resInfo and setRestaurantName
 
-  if (resInfo == null) return <Shimmer />;
+  // --- Early Returns (after all hooks have been called) ---
+  // Now we check for loading state *after* all hooks have been called.
+  // We can combine the checks since both are needed to render the menu.
+  if (resInfo == null || outletData == null) {
+      return <Shimmer />;
+  }
 
+  // --- Destructuring and other logic (after early returns) ---
+  // It's now safe to destructure from resInfo and outletData
+  // because we've returned early if they are null.
   const {
     name,
     cuisines,
@@ -58,29 +80,25 @@ const RestaurantMenu = () => {
     areaName,
     multiOutlet,
     locality
-  } = resInfo?.cards[2]?.card?.card?.info || {};
+  } = resInfo?.cards[2]?.card?.card?.info || {}; // Using optional chaining as a safeguard
 
-  const isPureVeg = resInfo?.cards[4]?.groupedCard?.cardGroupMap?.REGULAR?.cards[0].card.card.isPureVeg == true;
+  const isPureVeg = resInfo?.cards[4]?.groupedCard?.cardGroupMap?.REGULAR?.cards[0].card.card.isPureVeg === true;
 
-  // Fetching the data for our OutletPopUp from the parent 
-    if (outletData == null) return <Shimmer/>;
+  const {sla = {}} =  resInfo?.cards[2]?.card?.card?.info || {}; // Initialize sla as an empty object if null
+  const {minDeliveryTime, maxDeliveryTime, lastMileTravelString } = sla;
 
-  // const { siblingOutlets = []} = OutletData?.card[0].card.card || {};
-   const {sla = []} =  resInfo?.cards[2]?.card?.card?.info || {};
-   
-   const {minDeliveryTime, maxDeliveryTime, lastMileTravelString } = sla;
-   const { cards = [] } =
+  const { cards = [] } =
     resInfo?.cards[4]?.groupedCard?.cardGroupMap?.REGULAR || {};
 
-    const currentInfo = {
-      resId,
-      locality,
-      areaName,
-      avgRatingString,
-      minDeliveryTime,
-      maxDeliveryTime,
-      lastMileTravelString,
-    };
+  const currentInfo = {
+    resId,
+    locality,
+    areaName,
+    avgRatingString,
+    minDeliveryTime,
+    maxDeliveryTime,
+    lastMileTravelString,
+  };
 
   const filteredCards = cards.filter(
     (maincard) =>
@@ -98,6 +116,7 @@ const RestaurantMenu = () => {
     }));
   };
 
+  // --- JSX Rendering ---
   return (
     <div className="flex justify-center">
       <div className="w-[850px] max-w-[100%]">
@@ -122,6 +141,7 @@ const RestaurantMenu = () => {
                 outletData={outletData}
                 currentInfo={currentInfo}
                 onClose={() => setshowPopupOutlet(false)}
+                navigate={navigate}
               />
             )}
           </div>
@@ -180,13 +200,10 @@ const RestaurantMenu = () => {
         <div className="px-6">
           <ul>
             {filteredCards.map((cardcat, index) => {
-              console.log(
-                `categoryId: ${cardcat.card.card.categoryId}, title: ${cardcat.card.card.title}, index: ${index}`
-              );
               return (
                 <RestaurantCategory
                   key={`category-${cardcat.card.card.categoryId}-${
-                    cardcat.card.card.title || index
+                       cardcat.card.card.title || index
                   }`}
                   data={cardcat.card.card}
                   Filters={Filters}
@@ -216,7 +233,7 @@ const RestaurantMenu = () => {
             <span>{totalItems} items added</span>
             <button
               className="bg-white text-green-600 px-4 py-1 rounded font-bold"
-              onClick={() =>{navigate("/Cart")}}// or whatever logic
+              onClick={() => { navigate("/Cart"); }}
             >
               VIEW CART
             </button>

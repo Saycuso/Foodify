@@ -33,7 +33,7 @@ const CategoryItemPopUp = ({
   const defaultVar = currentGroup.variations.find(v=> v.default === 1);
   if(defaultVar && !variantSelections[groupId]){
     const fullVar = currentGroup.variations.find(v => v.id === defaultVar.id)
-    console.log("VARIANT SELECTIONS",variantSelections)
+    // console.log("VARIANT SELECTIONS",variantSelections)
       setSelections(prev => ({
         ...prev,
         variantSelections: {
@@ -286,10 +286,9 @@ const getFilteredAddons = () =>{
             <span>₹{Number((matchedPrice || 0)/100)}</span>
             <button onClick= {()=>{
               if (!handleMinChoicesValidation()) 
-          
                 return 
               ;
-              console.log("Add clicked");
+              // console.log("Add clicked");
               handleAddItem({
                 id:item.id,
                 price: matchedPrice || baseprice, 

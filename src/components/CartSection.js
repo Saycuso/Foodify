@@ -1,9 +1,16 @@
-
+import { useRestaurant } from "./RestaurantContext";
 
 const CartSection = () => {
+    const {restaurantName} = useRestaurant();
     return(
     <div className="bg-white h-[800px]">
-        <h2>Restaurant Name</h2>
+
+        {!restaurantName ? 
+             <p>Please select a restaurant first</p>    
+            :
+            <h2>{restaurantName}</h2>
+            }
+   
         </div>
     )
 }

@@ -2,14 +2,11 @@
 
 import { useState } from "react"
 import PopupWrapper from "../reuseables/PopupWrapperGeneric"
-import { usePricing } from "../utils/usePricing";
+
 
 const CustomizationPopUp = ({
   onClose,
   item,
-  addonSelections,
-  variantSelections,
-  addItem,
   handleAddItem,
   previous,
   setShowCustomizationPopup,
@@ -20,7 +17,7 @@ const CustomizationPopUp = ({
   const previousprice = previous?.price || 0;
   //  for totalprice
   return (
-    <PopupWrapper onClose={onClose} className="h-4">
+    <PopupWrapper onClose={onClose}>
       <div className="flex flex-col h-full">
         <div>
           <h3 className="opacity-80 text-[14px]">{item.name}</h3>
