@@ -29,10 +29,11 @@ export const usePricing = ({
     for (const model of pricingModels) {
       const variantMatch = model.variations.every(
         ({ groupId, variationId }) =>
-          variantSelections[groupId]?.toString() === variationId.toString()
+            variantSelections[groupId]?.id?.toString() === variationId.toString()
       );
 
       if (model.addonCombinations?.length > 0 && hasSelectedAddons) {
+       console.log("📦 addonSelections =", JSON.stringify(addonSelections, null, 2));
         const selectedAddonPrice = Object.entries(addonSelections).reduce(
           (total, [groupId, selectedAddons]) => {
             selectedAddons.forEach((addon) => {
@@ -42,7 +43,7 @@ export const usePricing = ({
                   combo.addonId.toString() === addon.id.toString()
               );
               if (match) {
-                total += addon?.price || 0;
+                total += addon?.price || 0; 
               }
             });
             return total;

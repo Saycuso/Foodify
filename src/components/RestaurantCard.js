@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { RESIMG_URL } from "../utils/constants";
 import { truncateText } from "../utils/constants";
 const RestaurantCard = (props) => {
@@ -6,10 +7,10 @@ const RestaurantCard = (props) => {
     cloudinaryImageId = "",
     name = "Restaurant Name Unavailable",
     cuisines = [],
-    costForTwo = "Cost Unavailable",
     avgRating = "Delivery Time Unavailable",
   } = resData;
   console.log(props);
+
   return (
     <div className="w-full h-full">
       <img

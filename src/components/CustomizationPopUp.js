@@ -1,16 +1,15 @@
 // CustomizationPopUp.js
 
-import { useState } from "react"
 import PopupWrapper from "../reuseables/PopupWrapperGeneric"
-
 
 const CustomizationPopUp = ({
   onClose,
   item,
   handleAddItem,
   previous,
-  setShowCustomizationPopup,
+  setCustomizingItem,
   handlePopup,
+  baseprice
 }) => {
   const previousaddons = previous?.addons || {};
   const previousvariant = previous?.variants || {};
@@ -50,12 +49,12 @@ const CustomizationPopUp = ({
             onClick={() => {
               handleAddItem({
                 id: item.id,
-                price: previousprice,
+                price: previousprice || baseprice,
                 name: item.name,
-                variants: previousvariant,
-                addons: previousaddons,
+                variants: previousvariant || [],
+                addons: previousaddons || [],
               });
-              setShowCustomizationPopup(false);
+               setCustomizingItem(null);
             }}
           >
             Repeat

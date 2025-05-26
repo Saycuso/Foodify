@@ -52,7 +52,7 @@ const CategoryItemPopUp = ({
  const handleVariantChange = (groupId, variationId, price, name) => {
   setSelections((prev) => {
     let newVarianttotalPrice = prev.totalVariantPrice ;
-    const prevSelectionId = prev.variantSelections[groupId];
+    const prevSelectionId = prev.variantSelections[groupId].id;
     const prevSelection = prevSelectionId
     ? variantGroups.find(group => group.groupId === groupId) 
     ?. variations.find(v=> v.id === prevSelectionId)
@@ -109,17 +109,40 @@ const CategoryItemPopUp = ({
 
 
  const handleMinChoicesValidation = () => {
+   const matchingmodel = pricingModels.find((model) =>
+     model.variations.every(
+       ({ groupId, variationId }) =>
+         variantSelections[groupId]?.id.toString() === variationId.toString()
+     )
+   );
+   // ✅ CASE 1: No pricingModels or model without variations — validate all addon groups
+   if (!matchingmodel || matchingmodel.variations.length === 0) {
+     for (const group of addons) {
+       const selectedChoices = addonSelections[group.groupId] || [];
+       if (group.minAddons > 0 && selectedChoices.length < group.minAddons) {
+         alert(
+           `You must select at least ${group.minAddons} ${group.groupName}`
+         );
+         return false;
+       }
+     }
+     return true;
+   }
+   const validAddonGroups = new Set(
+     matchingmodel.addonCombinations?.map((combo) => combo.groupId?.toString())
+   );
    for (const group of addons) {
+     if (!validAddonGroups.has(group.groupId.toString())) continue;
+
      const selectedChoices = addonSelections[group.groupId] || [];
-     if (group.minAddons > 0 && selectedChoices < group.minAddons) {
-      alert(`you must select atleast 1 ${group.groupName}`)
+     if (group.minAddons > 0 && selectedChoices.length < group.minAddons) {
+       alert(`You must select at least ${group.minAddons} ${group.groupName}`);
        return false;
      }
    }
    return true;
  };
-
- 
+   
 //  for totalprice
 const matchedPrice = usePricing({
   pricingModels,
@@ -138,7 +161,7 @@ const getFilteredAddons = () =>{
 
   const matchedmodel = pricingModels.find((model) =>
     model.variations.every(({groupId, variationId})=> 
-    variantSelections[groupId].toString() === variationId.toString()
+    variantSelections[groupId]?.id?.toString() === variationId.toString()
     )
   );
 
@@ -155,16 +178,15 @@ const getFilteredAddons = () =>{
 }
   
 // for Vaiations 
- const currentGroup = variantGroups[stepIndex];
- const selectedId = currentGroup
-   ? variantSelections[currentGroup.groupId]
-   : null;
+  const currentGroup = variantGroups[stepIndex];
   const previousGroup = stepIndex > 0 ? variantGroups[stepIndex - 1 ] : null;
-  const previousId = previousGroup ? variantSelections[previousGroup.groupId] : null;
+  const previousId = previousGroup ? variantSelections[previousGroup.groupId].id : null;
   const previousvariation = previousGroup?.variations.find((v)=> v.id === previousId)
  
 // for Addons
   const totalSteps = variantGroups.length + (addons.length > 0 ? 1 : 0);
+
+
   return (
     <PopupWrapperGeneric onClose={onClose}>
       <div className="flex flex-col h-full">
@@ -286,15 +308,14 @@ const getFilteredAddons = () =>{
             <span>₹{Number((matchedPrice || 0)/100)}</span>
             <button onClick= {()=>{
               if (!handleMinChoicesValidation()) 
-                return 
-              ;
+                return ;
               // console.log("Add clicked");
               handleAddItem({
                 id:item.id,
                 price: matchedPrice || baseprice, 
                 name: item.name,  
-                variants: variantSelections,
-                addons: addonSelections
+                variants: variantSelections || [],
+                addons: addonSelections || []
               });
               if(onAddToCart) onAddToCart();
               setShowCartFooter(true);   

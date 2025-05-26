@@ -9,6 +9,7 @@ import useRestaurantOutletHook from "../utils/useRestaurantOutletHook";
 import { useCartfooter } from "../utils/useCartfooter";
 import { useNavigate } from "react-router-dom";
 import { useRestaurant } from "./RestaurantContext";
+import ConflictModal from "./ConflictModal";
 
 const RestaurantMenu = () => {
   // --- All State Hooks First ---
@@ -19,7 +20,10 @@ const RestaurantMenu = () => {
   const [popupItemId,setPopupItemId] = useState(null);
   const [isvaraddPopupVisible, setIsVarAddPopUpVisible] = useState(false);
   const [showCartFooter, setShowCartFooter] = useState(false);
-  const [showCustomizationPopup, setShowCustomizationPopup] = useState(false);
+  const [customizingItem, setCustomizingItem] = useState(null);
+  const [showConflictModal,setShowConflictModal] = useState(false);
+  const [pendingItem, setPendingItem] = useState(null);
+  const [clearCartAndContinue, setClearCartAndContinue] = useState(null);
   const [Filters, setFilters] = useState({
     isVeg: false,
     nonVeg: false,
@@ -28,14 +32,15 @@ const RestaurantMenu = () => {
 
   // --- All Other Hooks ---
   // These must also be called unconditionally at the top level
-  const { setRestaurantName } = useRestaurant();
-  const {
-    cartItems,
-    addItem,
-    removeItem,
-    clearCart,
-    totalItems
-  } = useCartfooter(); // for the footerpopup of cart
+  const { setRestaurantName , setRestaurantAreaName} = useRestaurant();
+  const { cartItems, cartRestaurantId, addItem, removeItem, totalItems, clearCart } =
+    useCartfooter({
+      onCrossRestaurantAttempt: (item, clearCartFn) => {
+        setPendingItem(item);   
+        setShowConflictModal(true);
+        setClearCartAndContinue(()=>clearCartFn)
+      },
+    }); 
   const { resId } = useParams();
   const resInfo = useRestaurantMenu(resId); // Custom hook
   const outletData = useRestaurantOutletHook(resId); // Custom hook
@@ -56,8 +61,9 @@ const RestaurantMenu = () => {
     // but the logic inside only runs if resInfo and its name property exist.
     if(resInfo?.cards[2]?.card?.card?.info?.name){
       setRestaurantName(resInfo.cards[2].card.card.info.name);
+      setRestaurantAreaName(resInfo.cards[2].card.card.info.areaName)
     }
-  }, [resInfo, setRestaurantName]); // Depend on resInfo and setRestaurantName
+  }, [resInfo, setRestaurantName]); // Depend on resInfo and setRestaurantNamwe
 
   // --- Early Returns (after all hooks have been called) ---
   // Now we check for loading state *after* all hooks have been called.
@@ -200,6 +206,9 @@ const RestaurantMenu = () => {
         <div className="px-6">
           <ul>
             {filteredCards.map((cardcat, index) => {
+              // console.log(
+              //   `categoryId: ${cardcat.card.card.categoryId}, title: ${cardcat.card.card.title}, index: ${index}`
+              // );
               return (
                 <RestaurantCategory
                   key={`category-${cardcat.card.card.categoryId}-${
@@ -221,12 +230,42 @@ const RestaurantMenu = () => {
                   showCartFooter={showCartFooter}
                   setShowCartFooter={setShowCartFooter}
                   cartItems = {cartItems}
-                  showCustomizationPopup = {showCustomizationPopup}
-                  setShowCustomizationPopup = {setShowCustomizationPopup}
+                  cartRestaurantId = {cartRestaurantId}
+                  customizingItem = {customizingItem}
+                  setCustomizingItem = {setCustomizingItem}
                 />
               );
             })}
           </ul>
+        <div>
+          {showConflictModal && (
+            <ConflictModal
+              onConfirm = {async()=>{
+                console.log("Confirmed! Clearing cart and re-adding item...");
+                if(clearCartAndContinue){
+                  // 1. Execute the clearCart function obtained from useCartfooter
+                  await clearCartAndContinue();
+
+                  // 2. Give React a moment to update the state after clearing
+                  //    Then re-add the pending item to the *current* restaurant's cart
+                  setTimeout(()=>{
+                    if(pendingItem){
+                      addItem(pendingItem, resId); // <--- Re-add the item to the current restaurant
+                    }
+                    setShowConflictModal(false);
+                    setPendingItem(null);
+                    setClearCartAndContinue(null);
+                  }, 50);
+                }
+              }}
+              onCancel = {()=>{
+                setShowConflictModal(false); // ❌ Just close modal
+                setPendingItem(null);
+                setRetryFn(null);
+              }}
+            />
+          )}
+        </div>
         </div>
         {totalItems > 0 && showCartFooter && (
           <div className="fixed bottom-0 left-0 right-0 bg-green-600 text-white flex justify-between items-center px-4 py-3 shadow-md z-40">

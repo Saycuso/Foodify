@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Shimmer from "./Shimmer";
 import { Link } from "react-router-dom";
 import useOnlineStatus from "../utils/useOnlineStatus";
+import { useRestaurant } from "./RestaurantContext";
 
 const RestaurantCardDiscounted = withDiscountLabel(RestaurantCard);
 
@@ -14,6 +15,7 @@ const Body = () => {
 
   // Whenever state variable updates, react triggers a reconciliation cycle(re-renders the component)
   console.log("Body rendered!", ListOfRestaurants);
+  const { setResData } = useRestaurant();
 
   useEffect(() => {
     fetchData();
@@ -26,7 +28,6 @@ const Body = () => {
 
     const json = await data.json();
     // console.log(json);
-
     setListOfRestaurants(json?.data?.cards[1]?.card?.card?.gridElements?.infoWithStyle?.restaurants);  //unchanged
     setfilteredRestaurants((json?.data?.cards[1]?.card?.card?.gridElements?.infoWithStyle?.restaurants))
   };
@@ -108,6 +109,10 @@ const Body = () => {
           <Link
             key={restaurant.info.id}
             to={"/restaurants/" + restaurant.info.id}
+            onClick={() => {setResData(restaurant.info)
+              console.log("Setting ResData:", restaurant.info);
+            }} 
+            
           >
           <div className="relative group m-4 p-4 w-[300px] h-[320px] bg-orange-200 rounded-xl shadow-md shadow-amber-500 transition-transform duration-150 hover:scale-95 hover:opacity-95">
             {hasDiscount && (
