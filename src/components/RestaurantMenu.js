@@ -230,9 +230,13 @@ const RestaurantMenu = () => {
                   showCartFooter={showCartFooter}
                   setShowCartFooter={setShowCartFooter}
                   cartItems = {cartItems}
+                  clearCart = {clearCart}
                   cartRestaurantId = {cartRestaurantId}
                   customizingItem = {customizingItem}
                   setCustomizingItem = {setCustomizingItem}
+                  setPendingItem = {setPendingItem}
+                  setClearCartAndContinue = {setClearCartAndContinue}
+                  setShowConflictModal = {setShowConflictModal}
                 />
               );
             })}
@@ -240,7 +244,8 @@ const RestaurantMenu = () => {
         <div>
           {showConflictModal && (
             <ConflictModal
-              onConfirm = {async()=>{
+              onConfirm = {
+                async()=>{
                 console.log("Confirmed! Clearing cart and re-adding item...");
                 if(clearCartAndContinue){
                   // 1. Execute the clearCart function obtained from useCartfooter
@@ -250,7 +255,22 @@ const RestaurantMenu = () => {
                   //    Then re-add the pending item to the *current* restaurant's cart
                   setTimeout(()=>{
                     if(pendingItem){
-                      addItem(pendingItem, resId); // <--- Re-add the item to the current restaurant
+                      console.log("Pending item:",pendingItem);
+                      const hasVariantsorAddonsForPending =
+                          pendingItem.variantsV2?.variantGroups?.length > 0 ||
+                          pendingItem.addons?.length > 0 ||
+                          pendingItem.variants?.variantGroups?.length >0;
+                      
+                      if(hasVariantsorAddonsForPending){
+                         // If it has customizations, open CategoryItemPopUp for re-selection
+                        setPopupItemId(pendingItem.id); // Pass the full pendingItem object
+                        setIsVarAddPopUpVisible(true) // Show the popup
+                          // The actual addItem will occur from within the popup's handleAddToCartFinal
+                      }
+                      else{
+                        // If no customizations, add directly to the now empty cart
+                        addItem(pendingItem, resId); // <--- Re-add the item to the current restaurant
+                      }
                     }
                     setShowConflictModal(false);
                     setPendingItem(null);
@@ -259,9 +279,10 @@ const RestaurantMenu = () => {
                 }
               }}
               onCancel = {()=>{
-                setShowConflictModal(false); // ❌ Just close modal
+                // If user cancels, just close modal and clear pending state
+                setShowConflictModal(false);
                 setPendingItem(null);
-                setRetryFn(null);
+                setClearCartAndContinue(null);
               }}
             />
           )}

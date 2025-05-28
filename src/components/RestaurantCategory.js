@@ -22,20 +22,25 @@ const RestaurantCategory = ({
   setIsVarAddPopUpVisible,
   setShowCartFooter,
   cartItems,
+  clearCart,
   cartRestaurantId,
   customizingItem,
   setCustomizingItem,
+  setPendingItem,
+  setClearCartAndContinue,
+  setShowConflictModal
 }) => {
   const { title, itemCards = [], categories, categoryId } = data;
   const isExpanded = ExpandedCategories.includes(categoryId);
   const hasSubCategories = categories?.length > 0;
   const hasItemsOnly = itemCards?.length > 0 && !hasSubCategories;
-  const [selections, setSelections] = useState({
-    variantSelections: {}, // groupId: Id
-    addonSelections: {}, // groupId: [id, id, id, id]
-    totalAddonPrice: 0,
-    totalVariantPrice: 0,
-  });
+  const [currentPopupMatchedPrice, setCurrentPopupMatchedPrice] = useState(null);
+    const [selections, setSelections] = useState({
+      variantSelections: {}, // groupId: Id
+      addonSelections: {}, // groupId: [id, id, id, id]
+      totalAddonPrice: 0,
+      totalVariantPrice: 0,
+    });
 
   const {
     variantSelections,
@@ -44,6 +49,8 @@ const RestaurantCategory = ({
     totalVariantPrice,
   } = selections;
     const { resData, lastCustomisationMap, setLastCustomisationMap } = useRestaurant();
+ 
+
   // Add Item Logic
   const handleAddItem = (itemwithCustomisation) => {
     if(!resData?.id){
@@ -160,11 +167,17 @@ const RestaurantCategory = ({
             addItem(itemToAdd, resData?.id);
         }
     } else {
-        // Different restaurant, trigger the conflict modal in useCartfooter
-        // The addItem function in useCartfooter will handle this.
-        // We pass the full itemInfo here, so if "Yes, Start Fresh" is clicked,
-        // useCartfooter has the complete item data.
-        addItem(itemInfo, resData?.id);
+        // !!! DIFFERENT RESTAURANT - CONFLICT DETECTED !!!
+        // DO NOT ADD ITEM YET. INSTEAD, STORE IT AS PENDING AND SHOW THE MODAL.
+        console.log("Cross-restaurant conflict detected. Storing pending item and showing modal.");
+        // Store the item (which includes its current customizations)
+        setPendingItem(itemInfo);
+
+        // Set the function to clear the cart, to be called if user confirms
+        setClearCartAndContinue(() => async () => await clearCart()); // clearCart should come from useCartFooter
+     
+        // Show the conflict modal
+        setShowConflictModal(true);
     }
   };
 
@@ -294,9 +307,7 @@ const RestaurantCategory = ({
                                     }`}
                                     onClick={() => {
                                       // For the initial "Add" button click (count is 0)
-                                      if (count === 0) {
-                                          handleAddItemWithConflictCheck(item.card.info, count);
-                                      }
+                                    handleAddItemWithConflictCheck(item.card.info, count);
                                       // If count > 0, the div itself is clickable, but the + button has its own specific onClick.
                                       // This ensures clicks on the counter area also behave correctly for 0 count.
                                     }}
@@ -366,6 +377,7 @@ const RestaurantCategory = ({
                                         selections={selections}
                                         handleAddItem={handleAddItem}
                                         resetSelections={resetSelections}
+                                        setCurrentPopupMatchedPrice = {setCurrentPopupMatchedPrice}
                                       />
                                     )}
                                   {customizingItem === item.card.info.id && (
@@ -500,6 +512,7 @@ const RestaurantCategory = ({
                               selections={selections}
                               handleAddItem={handleAddItem}
                               resetSelections={resetSelections}
+                              setCurrentPopupMatchedPrice = {setCurrentPopupMatchedPrice}
                             />
                           )}
                         {customizingItem === item.card.info.id && (

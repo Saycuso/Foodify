@@ -20,11 +20,11 @@ const CategoryItemPopUp = ({
   setSelections,
   handleAddItem,
   resetSelections,
+  setCurrentPopupMatchedPrice,
 }) => {
 
 
  const [stepIndex, setStepIndex] = useState(0)
-
 
  useEffect(()=> { 
     const currentGroup = variantGroups[stepIndex];
@@ -154,6 +154,13 @@ const matchedPrice = usePricing({
   baseprice,
   isV2,
 });
+
+useEffect(() => {
+  if(setCurrentPopupMatchedPrice) {
+    setCurrentPopupMatchedPrice(matchedPrice);
+  }
+}, [matchedPrice, setCurrentPopupMatchedPrice])
+
 
 const getFilteredAddons = () =>{
   if(!pricingModels || pricingModels.length===0) 
