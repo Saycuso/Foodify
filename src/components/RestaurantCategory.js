@@ -1,10 +1,10 @@
 // RestaurantCategory.js
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { CATEGORY_IMG_URL } from "../utils/constants";
-import { useEffect, useState } from "react";
+import { hasCustomizations } from "../utils/hasCustomizations";
 import CategoryItemPopUp from "./CategoryItemPopUp";
 import CustomizationPopUp from "./CustomizationPopUp";
-import { useRestaurant } from "./RestaurantContext";
+import useRestaurantCategoryLogic from "../utils/useRestaurantCategoryLogic"; // Import the logic hook
 
 const RestaurantCategory = ({
   data,
@@ -28,188 +28,53 @@ const RestaurantCategory = ({
   setCustomizingItem,
   setPendingItem,
   setClearCartAndContinue,
-  setShowConflictModal
+  setShowConflictModal,
 }) => {
-  const { title, itemCards = [], categories, categoryId } = data;
-  const isExpanded = ExpandedCategories.includes(categoryId);
-  const hasSubCategories = categories?.length > 0;
-  const hasItemsOnly = itemCards?.length > 0 && !hasSubCategories;
-  const [currentPopupMatchedPrice, setCurrentPopupMatchedPrice] = useState(null);
-    const [selections, setSelections] = useState({
-      variantSelections: {}, // groupId: Id
-      addonSelections: {}, // groupId: [id, id, id, id]
-      totalAddonPrice: 0,
-      totalVariantPrice: 0,
-    });
-
   const {
+    title,
+    categoryId,
+    isExpanded,
+    hasSubCategories,
+    hasItemsOnly,
+    selections,
+    setSelections,
     variantSelections,
     addonSelections,
     totalAddonPrice,
     totalVariantPrice,
-  } = selections;
-    const { resData, lastCustomisationMap, setLastCustomisationMap } = useRestaurant();
- 
-
-  // Add Item Logic
-  const handleAddItem = (itemwithCustomisation) => {
-    if(!resData?.id){
-     /// console.warn("No Restaurant ID found in context API")
-      return;
-    }
-    addItem(itemwithCustomisation, resData.id);
-
-    setLastCustomisationMap((prev) => ({
-      ...prev,
-      [itemwithCustomisation.id]: itemwithCustomisation,
-    }));
-    console.log("Storing customization for", itemwithCustomisation.id, {
-      id: itemwithCustomisation.id,
-      name: itemwithCustomisation.name,
-      price: itemwithCustomisation.price,
-      variants: itemwithCustomisation.variants,
-      addons: itemwithCustomisation.addons,
-    });
-  };
-
-// For the middle counter logic
-  const getItemCount = (id) =>{
-    return cartItems
-    .filter((item) => item.id === id)
-    .reduce((sum, item) => sum + item.count, 0)
-  }
-// Remove Item Logic
-  const getCustomizationsForId = (id) =>{
-    return cartItems.filter((i)=> i.id === id)
-  }
-
-  const handleRemoveItem = (itemwithCustomisation) => {
-    const itemwithSameId = getCustomizationsForId(itemwithCustomisation.id);
-    //  console.log("🔍 itemWithCustomisation:", itemwithCustomisation);
-    //  console.log("🧩 All items with same ID:", itemwithSameId);
-     
-    const uniqueSet = new Set(
-      itemwithSameId.map((i) =>
-        JSON.stringify({ variants: i.variants, addons: i.addons })
-      )
-    );
-    //console.log("🧠 Unique customizations count:", uniqueSet.size);
-    if (uniqueSet.size > 1) {
-      alert(
-        `This item has multiple customizations added. Remove the correct item from the cart`
-      );
-      return;
-    }
-    removeItem(itemwithCustomisation);
-  };
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  const resetSelections = () => {
-    setSelections({
-      variantSelections: {},
-      addonSelections: {},
-      totalAddonPrice: 0,
-      totalVariantPrice: 0,
-    });
-  };
-
-  const handleCategoryClick = () => {
-    if (isExpanded) {
-      setExpandedCategories(
-        ExpandedCategories.filter((id) => id !== categoryId)
-      )
-    } else {
-      setExpandedCategories([...ExpandedCategories, categoryId]);
-    }
-  };
-
-  const handleSubCategoryClick = (subCategoryId) => {
-    if (ExpandedSubCategories.includes(subCategoryId)) {
-      setExpandedSubCategories(
-        ExpandedSubCategories.filter((id) => id !== subCategoryId)
-      );
-    } else {
-      setExpandedSubCategories([...ExpandedSubCategories, subCategoryId]);
-    }
-  };
-
-  const handlePopup = (item) => {
-    //console.log("Popup triggered with item:", item);
-    setPopupItemId(item);
-    setIsVarAddPopUpVisible(true);
-    setCustomizingItem(null);
-  };
-
-   const handleAddItemWithConflictCheck = (itemInfo, currentCount) => {
-    // Check if the item has variants/addons
-    const hasVariantsOrAddons =
-        itemInfo.variantsV2?.variantGroups?.length > 0 ||
-        itemInfo.addons?.length > 0 ||
-        itemInfo.variants?.variantGroups?.length > 0;
-
-    // Cross-restaurant conflict check
-    if (!cartRestaurantId || cartRestaurantId === resData?.id) {
-        // If no conflict, or same restaurant
-        if (hasVariantsOrAddons) {
-            // If item has customizations, always open CustomizationPopUp
-            setCustomizingItem(itemInfo.id);
-            // The actual addItem call will happen from within the CustomizationPopUp
-        } else {
-            // If no customizations, add directly.
-            // Crucial: Pass a complete item object, not just the ID.
-            const itemToAdd = {
-                id: itemInfo.id,
-                name: itemInfo.name,
-                price: itemInfo.price ?? itemInfo.defaultPrice,
-                variants: [], // Ensure these are always arrays
-                addons: []    // Ensure these are always arrays
-            };
-            addItem(itemToAdd, resData?.id);
-        }
-    } else {
-        // !!! DIFFERENT RESTAURANT - CONFLICT DETECTED !!!
-        // DO NOT ADD ITEM YET. INSTEAD, STORE IT AS PENDING AND SHOW THE MODAL.
-        console.log("Cross-restaurant conflict detected. Storing pending item and showing modal.");
-        // Store the item (which includes its current customizations)
-        setPendingItem(itemInfo);
-
-        // Set the function to clear the cart, to be called if user confirms
-        setClearCartAndContinue(() => async () => await clearCart()); // clearCart should come from useCartFooter
-     
-        // Show the conflict modal
-        setShowConflictModal(true);
-    }
-  };
-
-
-  // 🧠 FILTER FUNCTION
-  const filterItems = (items = []) => {
-    return items.filter((item) => {
-      const info = item.card?.info || {};
-      const isVeg = info.isVeg === 1;
-      const isBestseller = info.isBestseller === true;
-      const isGuiltfree = info.isGuiltfree == true;
-
-      if (Filters.isVeg && !isVeg) return false;
-      if (Filters.nonVeg && isVeg) return false;
-      if (Filters.bestseller && !isBestseller) return false;
-      if (Filters.Guiltfree && !isGuiltfree) return false;
-      return true;
-    });
-  };
-
-  const filteredItemCards = filterItems(itemCards);
-
-  // if we want to fetch items in subcategories beforhand lol
-  const subCategoriesWithFilteredItems = (categories || []).map((sub) => ({
-    ...sub,
-    filtereditemCardsofSub: filterItems(sub.itemCards),
-  }));
-
-  const totalfilteredSubItems = subCategoriesWithFilteredItems.reduce(
-    (sum, sub) => sum + sub.filtereditemCardsofSub.length,
-    0
-  );
+    lastCustomisationMap,
+    handleAddItem,
+    getItemCount,
+    handleRemoveItem,
+    resetSelections,
+    handleCategoryClick,
+    handleSubCategoryClick,
+    handlePopup,
+    handleAddItemWithConflictCheck,
+    filteredItemCards,
+    subCategoriesWithFilteredItems,
+    totalfilteredSubItems,
+    setCurrentPopupMatchedPrice,
+  } = useRestaurantCategoryLogic({
+    data,
+    Filters,
+    ExpandedCategories,
+    setExpandedCategories,
+    ExpandedSubCategories,
+    setExpandedSubCategories,
+    setPopupItemId,
+    setIsVarAddPopUpVisible,
+    addItem,
+    removeItem,
+    cartItems,
+    clearCart,
+    cartRestaurantId,
+    setCustomizingItem,
+    setPendingItem,
+    setClearCartAndContinue,
+    setShowConflictModal,
+    setShowCartFooter,
+  });
 
   return (
     <li className="font-semibold text-lg">
@@ -231,16 +96,16 @@ const RestaurantCategory = ({
               {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
             </span>
           )}
-        </div> 
+        </div>
       )}
       {(hasSubCategories || isExpanded) && (
         <ul className="mt-2 space-y-2">
-          {categories?.length > 0
-            ? categories.map((sub) => {
+          {data.categories?.length > 0
+            ? subCategoriesWithFilteredItems.map((sub) => {
                 const subExpanded = ExpandedSubCategories.includes(
                   sub.categoryId
                 );
-                const filteredSubItems = filterItems(sub.itemCards);
+                const filteredSubItems = sub.filtereditemCardsofSub;
 
                 return (
                   <li key={`sub-${sub.categoryId}-${sub.title}`}>
@@ -268,13 +133,9 @@ const RestaurantCategory = ({
                     {subExpanded && (
                       <ul className="mt-1 space-y-1">
                         {filteredSubItems.map((item) => {
-                          const matchedItem = cartItems.find(
-                            (i) => i.id === item.card.info.id
-                          );
-                          const count = matchedItem?.count || 0;
-                          const previous =
-                            lastCustomisationMap[item.card.info.id];
-
+                          const count = getItemCount(item.card.info.id);
+                          const previous = lastCustomisationMap[item.card.info.id];
+                          const itemwithCustomisation = hasCustomizations(item.card.info);
                           return (
                             <li
                               key={`item-${
@@ -289,7 +150,7 @@ const RestaurantCategory = ({
                                   {item.card.info.price / 100 ||
                                     item.card.info.defaultPrice / 100}
                                 </span>
-             
+
                                 <div className="relative w-[156px]">
                                   <img
                                     className="w-full h-[144px] rounded-xl object-cover shadow"
@@ -306,28 +167,37 @@ const RestaurantCategory = ({
                                         : `cursor-default`
                                     }`}
                                     onClick={() => {
-                                      // For the initial "Add" button click (count is 0)
-                                    handleAddItemWithConflictCheck(item.card.info, count);
-                                      // If count > 0, the div itself is clickable, but the + button has its own specific onClick.
-                                      // This ensures clicks on the counter area also behave correctly for 0 count.
+                                      handleAddItemWithConflictCheck(item.card.info, count);
                                     }}
                                   >
                                     {count > 0 ? (
                                       <div className="flex items-center gap-2">
                                         <button
-                                          onClick={() => 
-                                            {
-                                            //console.log("- triggered")
-                                            handleRemoveItem(lastCustomisationMap[item.card.info.id])}}
+                                          onClick={() =>
+                                            handleRemoveItem(lastCustomisationMap[item.card.info.id])
+                                          }
                                         >
                                           -
                                         </button>
-                                        <div>{getItemCount(item.card.info.id)}</div>
+                                        <div>{count}</div>
                                         <button
                                           onClick={(e) => {
                                             e.stopPropagation(); // Prevent parent div's onClick
-                                            // The '+' button directly triggers CustomizationPopUp
-                                            setCustomizingItem(item.card.info.id);
+                                            if (itemwithCustomisation) {
+                                              setCustomizingItem(item.card.info.id);
+                                            } else {
+                                              const itemToAdd = {
+                                                id: item.card.info.id,
+                                                price:
+                                                  item.card.info.price ??
+                                                  item.card.info.defaultPrice,
+                                                name: item.card.info.name,
+                                                variants: [],
+                                                addons: [],
+                                                OriginalMenuItemInfo: item.card.info
+                                              };
+                                              handleAddItem(itemToAdd);
+                                            }
                                           }}
                                         >
                                           +
@@ -337,20 +207,15 @@ const RestaurantCategory = ({
                                       <div>Add</div>
                                     )}
                                   </div>
-                                  {(item.card.info.variantsV2?.variantGroups ||
-                                    item.card.info.addons ||
-                                    item.card.info.variants?.variantGroups) &&
+                                  {itemwithCustomisation &&
                                     popupItemId === item.card.info.id &&
                                     isvaraddPopupVisible && (
                                       <CategoryItemPopUp
                                         item={item.card.info}
                                         variantGroups={
-                                          item.card.info.variantsV2
-                                            .variantGroups?.length > 0
-                                            ? item.card.info.variantsV2
-                                                .variantGroups
-                                            : item.card.info.variants
-                                                .variantGroups || []
+                                          item.card.info.variantsV2?.variantGroups?.length > 0
+                                            ? item.card.info.variantsV2.variantGroups
+                                            : item.card.info.variants?.variantGroups || []
                                         }
                                         baseprice={
                                           item.card.info.price ??
@@ -360,13 +225,12 @@ const RestaurantCategory = ({
                                         addons={item.card.info.addons || []}
                                         onClose={() => setPopupItemId(null)}
                                         pricingModels={
-                                          item.card.info.variantsV2
-                                            .pricingModels || []
+                                          item.card.info.variantsV2?.pricingModels || []
                                         }
                                         onAddToCart={() => {
                                           setIsVarAddPopUpVisible(false);
                                         }}
-                                        isV2={!!item?.card?.info?.variantsV2}
+                                        isV2={!!item?.card?.info?.variantsV2} 
                                         totalItems={totalItems}
                                         setShowCartFooter={setShowCartFooter}
                                         addonSelections={addonSelections}
@@ -377,27 +241,27 @@ const RestaurantCategory = ({
                                         selections={selections}
                                         handleAddItem={handleAddItem}
                                         resetSelections={resetSelections}
-                                        setCurrentPopupMatchedPrice = {setCurrentPopupMatchedPrice}
+                                        setCurrentPopupMatchedPrice={setCurrentPopupMatchedPrice}
                                       />
                                     )}
                                   {customizingItem === item.card.info.id && (
                                     console.log("Opening Customization for:", item.card.info.id, item.card.info.name),
                                     <CustomizationPopUp
-                                      key={item.card.info.id} // <-- 🔥 THIS forces remount on item change
+                                      key={item.card.info.id}
                                       item={item.card.info}
                                       onClose={() =>
                                         setCustomizingItem(null)
                                       }
                                       baseprice={
-                                          item.card.info.price ??
-                                          item.card.info.defaultPrice ??
-                                          0
-                                        }
+                                        item.card.info.price ??
+                                        item.card.info.defaultPrice ??
+                                        0
+                                      }
                                       addonSelections={addonSelections}
                                       variantSelections={variantSelections}
                                       handleAddItem={handleAddItem}
                                       previous={previous}
-                                      setCustomizingItem = {setCustomizingItem}
+                                      setCustomizingItem={setCustomizingItem}
                                       handlePopup={handlePopup}
                                     />
                                   )}
@@ -412,12 +276,9 @@ const RestaurantCategory = ({
                 );
               })
             : filteredItemCards.map((item) => {
-                const matchedItem = cartItems.find(
-                  (i) => i.id === item.card.info.id
-                );
-                const count = matchedItem?.count || 0;
+                const count = getItemCount(item.card.info.id);
                 const previous = lastCustomisationMap[item.card.info.id];
-
+                const itemwithCustomisation = hasCustomizations(item.card.info);
                 return (
                   <li
                     key={item?.card?.info?.id || item?.card?.info?.name}
@@ -443,29 +304,39 @@ const RestaurantCategory = ({
                               : `cursor-default`
                           }`}
                           onClick={() => {
-                                      // For the initial "Add" button click (count is 0)
-                                      if (count === 0) {
-                                          handleAddItemWithConflictCheck(item.card.info, count);
-                                      }
-                                      // If count > 0, the div itself is clickable, but the + button has its own specific onClick.
-                                      // This ensures clicks on the counter area also behave correctly for 0 count.
-                                    }}
+                            if (count === 0) {
+                              handleAddItemWithConflictCheck(item.card.info, count);
+                            }
+                          }}
                         >
                           {count > 0 ? (
                             <div className="flex items-center gap-2">
-                              <button 
-                              onClick={() =>{ 
-                              handleRemoveItem(lastCustomisationMap[item.card.info.id])} }
-                                      >
+                              <button
+                                onClick={() =>
+                                  handleRemoveItem(lastCustomisationMap[item.card.info.id])
+                                }
+                              >
                                 -
                               </button>
-                              <div>{getItemCount(item.card.info.id)}</div>
+                              <div>{count}</div>
                               <button
                                 onClick={(e) => {
-                                            e.stopPropagation(); // Prevent parent div's onClick
-                                            // The '+' button directly triggers CustomizationPopUp
-                                            setCustomizingItem(item.card.info.id);
-                                          }}
+                                  e.stopPropagation(); // Prevent parent div's onClick
+                                  if (itemwithCustomisation) {
+                                    setCustomizingItem(item.card.info.id);
+                                  } else {
+                                    const itemToAdd = {
+                                      id: item.card.info.id,
+                                      price:
+                                        item.card.info.price ??
+                                        item.card.info.defaultPrice,
+                                      name: item.card.info.name,
+                                      variants: [],
+                                      addons: [],
+                                    };
+                                    handleAddItem(itemToAdd);
+                                  }
+                                }}
                               >
                                 +
                               </button>
@@ -475,18 +346,15 @@ const RestaurantCategory = ({
                           )}
                         </div>
 
-                        {(item.card.info.variantsV2?.variantGroups ||
-                          item.card.info.addons ||
-                          item.card.info.variants?.variantGroups) &&
+                        {itemwithCustomisation &&
                           popupItemId === item.card.info.id &&
                           isvaraddPopupVisible && (
                             <CategoryItemPopUp
                               item={item.card.info}
                               variantGroups={
-                                item.card.info.variantsV2.variantGroups
-                                  ?.length > 0
+                                item.card.info.variantsV2?.variantGroups?.length > 0
                                   ? item.card.info.variantsV2.variantGroups
-                                  : item.card.info.variants.variantGroups || []
+                                  : item.card.info.variants?.variantGroups || []
                               }
                               baseprice={
                                 item.card.info.price ??
@@ -496,7 +364,7 @@ const RestaurantCategory = ({
                               addons={item.card.info.addons || []}
                               onClose={() => setPopupItemId(null)}
                               pricingModels={
-                                item.card.info.variantsV2.pricingModels || []
+                                item.card.info.variantsV2?.pricingModels || []
                               }
                               onAddToCart={() => {
                                 setIsVarAddPopUpVisible(false);
@@ -512,25 +380,20 @@ const RestaurantCategory = ({
                               selections={selections}
                               handleAddItem={handleAddItem}
                               resetSelections={resetSelections}
-                              setCurrentPopupMatchedPrice = {setCurrentPopupMatchedPrice}
+                              setCurrentPopupMatchedPrice={setCurrentPopupMatchedPrice}
+                              itemwithCustomisation = {itemwithCustomisation}
                             />
                           )}
                         {customizingItem === item.card.info.id && (
-                         console.log("Opening Customization for:", item.card.info.id, item.card.info.name),
+                          console.log("Opening Customization for:", item.card.info.id, item.card.info.name),
                           <CustomizationPopUp
-                            key={item.card.info.id} // <-- 🔥 THIS forces remount on item change
+                            key={item.card.info.id}
                             item={item.card.info}
                             onClose={() => setCustomizingItem(null)}
-                            addonSelections={addonSelections}
-                            variantSelections={variantSelections}
-                            handleAddItem={handleAddItem}
-                            baseprice={
-                                          item.card.info.price ??
-                                          item.card.info.defaultPrice ??
-                                          0
-                                        }
+                            addItem = {addItem}
+                            baseprice={item.card.info.price ?? item.card.info.defaultPrice ?? 0}
                             previous={previous}
-                            setCustomizingItem = {setCustomizingItem}
+                            setCustomizingItem={setCustomizingItem}
                             handlePopup={handlePopup}
                           />
                         )}
@@ -544,5 +407,4 @@ const RestaurantCategory = ({
     </li>
   );
 };
-
 export default RestaurantCategory;

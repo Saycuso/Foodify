@@ -2,6 +2,7 @@
 import PopupWrapperGeneric from "../reuseables/PopupWrapperGeneric";
 import { useState, useEffect } from "react";
 import { usePricing } from "../utils/usePricing";
+import { hasCustomizations } from "../utils/hasCustomizations";
 
 const CategoryItemPopUp = ({
   item,
@@ -13,18 +14,19 @@ const CategoryItemPopUp = ({
   onAddToCart,
   isV2,
   setShowCartFooter,
-  addonSelections,
-  variantSelections,
-  totalAddonPrice,
-  totalVariantPrice,
+    addonSelections,
+    variantSelections,
+    totalAddonPrice,
+    totalVariantPrice,
   setSelections,
   handleAddItem,
   resetSelections,
+  itemwithCustomisation,
   setCurrentPopupMatchedPrice,
 }) => {
 
 
- const [stepIndex, setStepIndex] = useState(0)
+const [stepIndex, setStepIndex] = useState(0)
 
  useEffect(()=> { 
     const currentGroup = variantGroups[stepIndex];
@@ -322,9 +324,10 @@ const getFilteredAddons = () =>{
                 price: matchedPrice || baseprice, 
                 name: item.name,  
                 variants: variantSelections || [],
-                addons: addonSelections || []
+                addons: addonSelections || [],
+                OriginalMenuItemInfo: item
               });
-              if(onAddToCart) onAddToCart();
+              if(onAddToCart) onAddToCart(); 
               setShowCartFooter(true);   
               setTimeout(()=>{
                 resetSelections();

@@ -17,10 +17,7 @@ const RestaurantMenu = () => {
   const [ExpandedCategories, setExpandedCategories] = useState([]);
   const [ExpandedSubCategories, setExpandedSubCategories] = useState([]);
   const [showPopupOutlet, setshowPopupOutlet] = useState(false);
-  const [popupItemId,setPopupItemId] = useState(null);
-  const [isvaraddPopupVisible, setIsVarAddPopUpVisible] = useState(false);
   const [showCartFooter, setShowCartFooter] = useState(false);
-  const [customizingItem, setCustomizingItem] = useState(null);
   const [showConflictModal,setShowConflictModal] = useState(false);
   const [pendingItem, setPendingItem] = useState(null);
   const [clearCartAndContinue, setClearCartAndContinue] = useState(null);
@@ -32,8 +29,19 @@ const RestaurantMenu = () => {
 
   // --- All Other Hooks ---
   // These must also be called unconditionally at the top level
-  const { setRestaurantName , setRestaurantAreaName} = useRestaurant();
-  const { cartItems, cartRestaurantId, addItem, removeItem, totalItems, clearCart } =
+  const {
+    setRestaurantName,
+    setRestaurantAreaName,
+    setResData,
+    resData,
+    customizingItem,
+    setCustomizingItem,
+    isvaraddPopupVisible,
+    setIsVarAddPopUpVisible,
+    popupItemId,
+    setPopupItemId,
+  } = useRestaurant();
+  const { cartState, cartItems, cartRestaurantId, addItem, removeItem, totalItems, clearCart } =
     useCartfooter({
       onCrossRestaurantAttempt: (item, clearCartFn) => {
         setPendingItem(item);   
@@ -62,6 +70,7 @@ const RestaurantMenu = () => {
     if(resInfo?.cards[2]?.card?.card?.info?.name){
       setRestaurantName(resInfo.cards[2].card.card.info.name);
       setRestaurantAreaName(resInfo.cards[2].card.card.info.areaName)
+      setResData(resInfo.cards[2].card.card.info)
     }
   }, [resInfo, setRestaurantName]); // Depend on resInfo and setRestaurantNamwe
 
@@ -250,10 +259,7 @@ const RestaurantMenu = () => {
                 if(clearCartAndContinue){
                   // 1. Execute the clearCart function obtained from useCartfooter
                   await clearCartAndContinue();
-
-                  // 2. Give React a moment to update the state after clearing
-                  //    Then re-add the pending item to the *current* restaurant's cart
-                  setTimeout(()=>{
+                 setTimeout(() => {
                     if(pendingItem){
                       console.log("Pending item:",pendingItem);
                       const hasVariantsorAddonsForPending =
@@ -265,16 +271,29 @@ const RestaurantMenu = () => {
                          // If it has customizations, open CategoryItemPopUp for re-selection
                         setPopupItemId(pendingItem.id); // Pass the full pendingItem object
                         setIsVarAddPopUpVisible(true) // Show the popup
-                          // The actual addItem will occur from within the popup's handleAddToCartFinal
+                        setShowConflictModal(false);
+                        // The actual addItem will occur from within the popup's handleAddToCartFinal
                       }
                       else{
+                           const itemToAdd = {
+                             id: pendingItem.id,
+                             price: pendingItem.price ?? pendingItem.defaultPrice,
+                             name: pendingItem.name,
+                             variants: [], // Ensure these are always arrays
+                             addons: [], // Ensure these are always arrays
+                           };
                         // If no customizations, add directly to the now empty cart
-                        addItem(pendingItem, resId); // <--- Re-add the item to the current restaurant
-                      }
-                    }
-                    setShowConflictModal(false);
-                    setPendingItem(null);
-                    setClearCartAndContinue(null);
+                        addItem(itemToAdd, resData.id, resData); // <--- Re-add the item to the current restaurant         
+                        setShowConflictModal(false);
+                        setPendingItem(null);
+                        setClearCartAndContinue(null); // It's safe to clear now for this path.
+                      } 
+                    } else {
+                        console.log("🟡 No pending item. Closing modal.");
+                        setShowConflictModal(false);
+                        setPendingItem(null);
+                        setClearCartAndContinue(null); 
+                    }    
                   }, 50);
                 }
               }}
@@ -293,7 +312,7 @@ const RestaurantMenu = () => {
             <span>{totalItems} items added</span>
             <button
               className="bg-white text-green-600 px-4 py-1 rounded font-bold"
-              onClick={() => { navigate("/Cart"); }}
+              onClick={() => { navigate("/Cart")}}
             >
               VIEW CART
             </button>

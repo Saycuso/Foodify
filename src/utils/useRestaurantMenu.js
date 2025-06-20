@@ -1,3 +1,4 @@
+//useRestaurantMenu.js
 import { useEffect, useState } from "react";
 import { MENU_URL } from "./constants";
 
@@ -16,8 +17,6 @@ useEffect(() => {
     setresInfo(json.data);
     console.log(json.data)
   }
-
-
     return resInfo;
 }
 

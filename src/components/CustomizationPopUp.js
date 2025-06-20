@@ -1,19 +1,20 @@
 // CustomizationPopUp.js
 
 import PopupWrapper from "../reuseables/PopupWrapperGeneric"
+import { useRestaurant } from "./RestaurantContext";
 
 const CustomizationPopUp = ({
-  onClose,
   item,
-  handleAddItem,
   previous,
-  setCustomizingItem,
-  handlePopup,
-  baseprice
+  addItem,
+  onClose,
+  baseprice,
+  handlePopup
 }) => {
   const previousaddons = previous?.addons || {};
   const previousvariant = previous?.variants || {};
   const previousprice = previous?.price || 0;
+  const {resData} = useRestaurant();
   //  for totalprice
   return (
     <PopupWrapper onClose={onClose}>
@@ -47,14 +48,15 @@ const CustomizationPopUp = ({
           <button
             className="border-2 p-2"
             onClick={() => {
-              handleAddItem({
-                id: item.id,
-                price: previousprice || baseprice,
-                name: item.name,
-                variants: previousvariant || [],
-                addons: previousaddons || [],
-              });
-               setCustomizingItem(null);
+              const itemToAdd = {
+              id: item.id,
+              price: previousprice || baseprice,
+              name: item.name,
+              variants: previousvariant || [],
+              addons: previousaddons || [],
+              }  
+               addItem(itemToAdd, resData.id, resData)
+               onClose();
             }}
           >
             Repeat
