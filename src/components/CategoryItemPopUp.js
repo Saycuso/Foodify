@@ -1,8 +1,9 @@
-// CategoryItemPopUp
+// Updated CategoryItemPopUp
 import PopupWrapperGeneric from "../reuseables/PopupWrapperGeneric";
 import { useState, useEffect } from "react";
 import { usePricing } from "../utils/usePricing";
-import { hasCustomizations } from "../utils/hasCustomizations";
+import { useRestaurant } from "./RestaurantContext";
+import { useCartfooter } from "../utils/useCartfooter";
 
 const CategoryItemPopUp = ({
   item,
@@ -13,19 +14,15 @@ const CategoryItemPopUp = ({
   pricingModels = [],
   onAddToCart,
   isV2,
-  setShowCartFooter,
+  addItem
+}) => {
+const {selections, setSelections, resData, resetSelections, setCurrentPopupMatchedPrice} = useRestaurant();
+  const {
     addonSelections,
     variantSelections,
     totalAddonPrice,
     totalVariantPrice,
-  setSelections,
-  handleAddItem,
-  resetSelections,
-  itemwithCustomisation,
-  setCurrentPopupMatchedPrice,
-}) => {
-
-
+  } = selections;
 const [stepIndex, setStepIndex] = useState(0)
 
  useEffect(()=> { 
@@ -319,19 +316,23 @@ const getFilteredAddons = () =>{
               if (!handleMinChoicesValidation()) 
                 return ;
               // console.log("Add clicked");
-              handleAddItem({
+              const itemToAdd = {
                 id:item.id,
                 price: matchedPrice || baseprice, 
                 name: item.name,  
                 variants: variantSelections || [],
                 addons: addonSelections || [],
                 OriginalMenuItemInfo: item
-              });
-              if(onAddToCart) onAddToCart(); 
-              setShowCartFooter(true);   
-              setTimeout(()=>{
+              }
+              addItem(itemToAdd,resData.id,resData)
+                if (onAddToCart) {
+                  setTimeout(() => {
+                    onAddToCart();
+                  }, 0);
+                }  
+                setTimeout(()=>{
                 resetSelections();
-              }, 0)      
+              }, 0)     
             }}>Add item to cart</button>
           </div>
         )}

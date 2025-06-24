@@ -5,6 +5,8 @@ import { hasCustomizations } from "../utils/hasCustomizations";
 import CategoryItemPopUp from "./CategoryItemPopUp";
 import CustomizationPopUp from "./CustomizationPopUp";
 import useRestaurantCategoryLogic from "../utils/useRestaurantCategoryLogic"; // Import the logic hook
+import useRestaurantMenu from "../utils/useRestaurantMenu";
+import { useRestaurant } from "./RestaurantContext";
 
 const RestaurantCategory = ({
   data,
@@ -16,11 +18,9 @@ const RestaurantCategory = ({
   popupItemId,
   setPopupItemId,
   isvaraddPopupVisible,
-  totalItems,
   addItem,
   removeItem,
   setIsVarAddPopUpVisible,
-  setShowCartFooter,
   cartItems,
   clearCart,
   cartRestaurantId,
@@ -32,21 +32,14 @@ const RestaurantCategory = ({
 }) => {
   const {
     title,
-    categoryId,
     isExpanded,
     hasSubCategories,
     hasItemsOnly,
-    selections,
-    setSelections,
     variantSelections,
     addonSelections,
-    totalAddonPrice,
-    totalVariantPrice,
     lastCustomisationMap,
-    handleAddItem,
     getItemCount,
     handleRemoveItem,
-    resetSelections,
     handleCategoryClick,
     handleSubCategoryClick,
     handlePopup,
@@ -54,7 +47,6 @@ const RestaurantCategory = ({
     filteredItemCards,
     subCategoriesWithFilteredItems,
     totalfilteredSubItems,
-    setCurrentPopupMatchedPrice,
   } = useRestaurantCategoryLogic({
     data,
     Filters,
@@ -73,8 +65,8 @@ const RestaurantCategory = ({
     setPendingItem,
     setClearCartAndContinue,
     setShowConflictModal,
-    setShowCartFooter,
   });
+  const {resData} = useRestaurant();
 
   return (
     <li className="font-semibold text-lg">
@@ -196,7 +188,7 @@ const RestaurantCategory = ({
                                                 addons: [],
                                                 OriginalMenuItemInfo: item.card.info
                                               };
-                                              handleAddItem(itemToAdd);
+                                              addItem(itemToAdd, resData.id, resData)
                                             }
                                           }}
                                         >
@@ -217,13 +209,13 @@ const RestaurantCategory = ({
                                             ? item.card.info.variantsV2.variantGroups
                                             : item.card.info.variants?.variantGroups || []
                                         }
+                                        onClose={() => setPopupItemId(null)}
                                         baseprice={
                                           item.card.info.price ??
                                           item.card.info.defaultPrice ??
                                           0
                                         }
                                         addons={item.card.info.addons || []}
-                                        onClose={() => setPopupItemId(null)}
                                         pricingModels={
                                           item.card.info.variantsV2?.pricingModels || []
                                         }
@@ -231,17 +223,7 @@ const RestaurantCategory = ({
                                           setIsVarAddPopUpVisible(false);
                                         }}
                                         isV2={!!item?.card?.info?.variantsV2} 
-                                        totalItems={totalItems}
-                                        setShowCartFooter={setShowCartFooter}
-                                        addonSelections={addonSelections}
-                                        variantSelections={variantSelections}
-                                        totalAddonPrice={totalAddonPrice}
-                                        totalVariantPrice={totalVariantPrice}
-                                        setSelections={setSelections}
-                                        selections={selections}
-                                        handleAddItem={handleAddItem}
-                                        resetSelections={resetSelections}
-                                        setCurrentPopupMatchedPrice={setCurrentPopupMatchedPrice}
+                                        addItem={addItem}
                                       />
                                     )}
                                   {customizingItem === item.card.info.id && (
@@ -249,6 +231,7 @@ const RestaurantCategory = ({
                                     <CustomizationPopUp
                                       key={item.card.info.id}
                                       item={item.card.info}
+                                      addItem={addItem}
                                       onClose={() =>
                                         setCustomizingItem(null)
                                       }
@@ -259,7 +242,6 @@ const RestaurantCategory = ({
                                       }
                                       addonSelections={addonSelections}
                                       variantSelections={variantSelections}
-                                      handleAddItem={handleAddItem}
                                       previous={previous}
                                       setCustomizingItem={setCustomizingItem}
                                       handlePopup={handlePopup}
@@ -334,7 +316,7 @@ const RestaurantCategory = ({
                                       variants: [],
                                       addons: [],
                                     };
-                                    handleAddItem(itemToAdd);
+                                    addItem(itemToAdd,resData.id, resData)
                                   }
                                 }}
                               >
@@ -370,18 +352,7 @@ const RestaurantCategory = ({
                                 setIsVarAddPopUpVisible(false);
                               }}
                               isV2={!!item?.card?.info?.variantsV2}
-                              totalItems={totalItems}
-                              setShowCartFooter={setShowCartFooter}
-                              addonSelections={addonSelections}
-                              variantSelections={variantSelections}
-                              totalAddonPrice={totalAddonPrice}
-                              totalVariantPrice={totalVariantPrice}
-                              setSelections={setSelections}
-                              selections={selections}
-                              handleAddItem={handleAddItem}
-                              resetSelections={resetSelections}
-                              setCurrentPopupMatchedPrice={setCurrentPopupMatchedPrice}
-                              itemwithCustomisation = {itemwithCustomisation}
+                              addItem={addItem}
                             />
                           )}
                         {customizingItem === item.card.info.id && (
@@ -389,8 +360,8 @@ const RestaurantCategory = ({
                           <CustomizationPopUp
                             key={item.card.info.id}
                             item={item.card.info}
-                            onClose={() => setCustomizingItem(null)}
                             addItem = {addItem}
+                            onClose={() => setCustomizingItem(null)}
                             baseprice={item.card.info.price ?? item.card.info.defaultPrice ?? 0}
                             previous={previous}
                             setCustomizingItem={setCustomizingItem}

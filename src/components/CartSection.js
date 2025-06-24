@@ -7,7 +7,8 @@ const CartSection = ({
   cartItems,
   setCustomizingItem,
   addItem,
-  resData
+  resData,
+  onAddToCart,
 }) => {
   //console.log("resdata is", resData)
   const { cloudinaryImageId } = cartRestaurantInfo || {};
@@ -33,10 +34,10 @@ const CartSection = ({
       <div>
         <ul>
           {cartItems.length > 0
-            ? cartItems.map((item, index) => {
+            ? cartItems.map((item) => {
                 return (
                   <li
-                    key={`item-${item.id}-${item.count}-${index}`}
+                    key={`item-${item.id}-${JSON.stringify(item.variants || [])}-${JSON.stringify(item.addons || [])}`}
                     className="flex justify-between items-center py-4 p-4"
                   >
                     {/* Left: Item info */}
@@ -66,7 +67,7 @@ const CartSection = ({
                             item.OriginalMenuItemInfo?.variants?.length > 0
                           ) {
                             console.log("BRUHHHH")
-                            setCustomizingItem(item.id);
+                            setCustomizingItem(item);
                           } else {
                             addItem(item, resData?.id, resData);
                           }

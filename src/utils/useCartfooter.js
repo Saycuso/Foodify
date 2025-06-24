@@ -10,12 +10,22 @@ export function useCartfooter({onCrossRestaurantAttempt}={}) {
     return stored ? JSON.parse(stored) : { restaurantId: null, restaurantInfo: null, items: [] };
   };
   const [cartState, setCartState] = useState(getInitCart);
+  const {setShowCartFooter, setLastCustomisationMap} = useRestaurant();
   // Persist to localStorage on every cart change
   useEffect(() => {
     console.log("📦 Saving cartState to localStorage:", cartState);
     console.log("📦 useEffect: cartState value received by useEffect dependency array:", cartState); // This should confirm what useEffect sees
     localStorage.setItem("cartState", JSON.stringify(cartState));
-  }, [cartState]);
+    
+    // --- MOVE THIS LOGIC HERE ---
+    if (cartState.items.length > 0) {
+      setShowCartFooter(true);
+    } else {
+      setShowCartFooter(false);
+    }
+    // --- END MOVED LOGIC ---
+
+  }, [cartState, setShowCartFooter]);
 
   // 🔴 IMPORTANT CHANGE 1: Wrap clearCart in useCallback
   const clearCart = useCallback(() => {
@@ -83,8 +93,15 @@ export function useCartfooter({onCrossRestaurantAttempt}={}) {
         console.log("setCartState updater: Returning new state:", newState);
         return newState;
     });
-      console.log("addItem (after setCartState call): current cartState from useCallback closure:", cartState);
-}, [onCrossRestaurantAttempt, clearCart]);
+      // 🟩 ADD THIS HERE OUTSIDE setCartState
+    if (setLastCustomisationMap && typeof setLastCustomisationMap === "function") {
+      setLastCustomisationMap((prev) => ({
+        ...prev,
+        [item.id]: item, // Store the full item, including its variants and addons
+      }));
+      console.log("🧠 Stored last customization in map for", item.id,item. item);
+    }
+  }, [onCrossRestaurantAttempt, clearCart, setLastCustomisationMap]); // Dependency array: Removed `cartState.restaurantId`
 
   // 🔻 IMPORTANT CHANGE 3: Wrap removeItem in useCallback and reset restaurantId if cart becomes empty
   const removeItem = useCallback((item) => {

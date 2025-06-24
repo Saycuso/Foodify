@@ -1,4 +1,4 @@
-// RestaurantMenu.js
+// Updated RestaurantMenu.js
 import Shimmer from "./Shimmer";
 import { useParams } from "react-router-dom";
 import useRestaurantMenu from "../utils/useRestaurantMenu";
@@ -17,7 +17,6 @@ const RestaurantMenu = () => {
   const [ExpandedCategories, setExpandedCategories] = useState([]);
   const [ExpandedSubCategories, setExpandedSubCategories] = useState([]);
   const [showPopupOutlet, setshowPopupOutlet] = useState(false);
-  const [showCartFooter, setShowCartFooter] = useState(false);
   const [showConflictModal,setShowConflictModal] = useState(false);
   const [pendingItem, setPendingItem] = useState(null);
   const [clearCartAndContinue, setClearCartAndContinue] = useState(null);
@@ -40,6 +39,7 @@ const RestaurantMenu = () => {
     setIsVarAddPopUpVisible,
     popupItemId,
     setPopupItemId,
+    showCartFooter,
   } = useRestaurant();
   const { cartState, cartItems, cartRestaurantId, addItem, removeItem, totalItems, clearCart } =
     useCartfooter({
@@ -53,16 +53,6 @@ const RestaurantMenu = () => {
   const resInfo = useRestaurantMenu(resId); // Custom hook
   const outletData = useRestaurantOutletHook(resId); // Custom hook
   const navigate = useNavigate(); // Hook from react-router-dom
-
-  // --- Effects ---
-  // These must be called unconditionally at the top level
-  useEffect(() => {
-    if (cartItems.length > 0) {
-      setShowCartFooter(true);
-    } else {
-      setShowCartFooter(false);
-    }
-  }, [cartItems]); // Dependency array ensures this runs when cartItems changes
 
   useEffect(()=> {
     // This effect is now called unconditionally in every render,
@@ -236,8 +226,6 @@ const RestaurantMenu = () => {
                   addItem={addItem}
                   removeItem={removeItem}
                   totalItems={totalItems}
-                  showCartFooter={showCartFooter}
-                  setShowCartFooter={setShowCartFooter}
                   cartItems = {cartItems}
                   clearCart = {clearCart}
                   cartRestaurantId = {cartRestaurantId}

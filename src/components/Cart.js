@@ -18,6 +18,7 @@ const Cart = () => {
     addItem,
     removeItem,
   } = useCartfooter({ onCrossRestaurantAttempt: null });
+  console.log("🛒 Cart.js: addItem from useCartfooter:", addItem);
   const {
     resData,
     customizingItem,
@@ -26,15 +27,9 @@ const Cart = () => {
     setIsVarAddPopUpVisible,
     popupItemId,
     setPopupItemId,
-    resetSelections,
   } = useRestaurant();
 
-  const getItemtoCustomize = (itemId) => {
-    const item =  cartItems.find(item => item.id === itemId)
-    const info = item?.OriginalMenuItemInfo;
-    return hasCustomizations(info) ? item : null;
-  }
-  const itemToCustomize = getItemtoCustomize(customizingItem)
+  const itemToCustomizeFromCart = customizingItem;
 
   const itemForCategoryPopup = cartItems.find(i => i.id === popupItemId)?.OriginalMenuItemInfo;
 
@@ -86,21 +81,21 @@ const Cart = () => {
           </div>
         </div>
       </div>
-      {itemToCustomize && // Simplified
-        (console.log("Rendering CustomizationPopUp for:", itemToCustomize.name),
+      {itemToCustomizeFromCart && // Simplified
+        (console.log("Rendering CustomizationPopUp for:", itemToCustomizeFromCart.name),
         (
           <CustomizationPopUp
-            key={itemToCustomize.id}
-            item={itemToCustomize.OriginalMenuItemInfo || itemToCustomize}
-            previous={itemToCustomize}
+            key={itemToCustomizeFromCart.id}
+            item={itemToCustomizeFromCart.OriginalMenuItemInfo || itemToCustomizeFromCart}
+            previous={itemToCustomizeFromCart}
             addItem={addItem}
             onClose={() => {
               setCustomizingItem(null);
             }}
             baseprice={
-              itemToCustomize.price ??
-              itemToCustomize.OriginalMenuItemInfo?.price ??
-              itemToCustomize.OriginalMenuItemInfo?.defaultPrice ??
+              itemToCustomizeFromCart.price ??
+              itemToCustomizeFromCart.OriginalMenuItemInfo?.price ??
+              itemToCustomizeFromCart.OriginalMenuItemInfo?.defaultPrice ??
               0
             }
             handlePopup={handlePopupInCart}
@@ -115,15 +110,15 @@ const Cart = () => {
               : itemForCategoryPopup.variants?.variantGroups || []
           }
           onClose={() => {
-            setIsVarAddPopUpVisible(false)
-            setPopupItemId(null)
-            resetSelections()  
+            setIsVarAddPopUpVisible(false);
           }}
-          baseprice={itemForCategoryPopup.price ?? itemForCategoryPopup.defaultPrice ?? 0}
+          baseprice={
+            itemForCategoryPopup.price ?? itemForCategoryPopup.defaultPrice ?? 0
+          }
           addons={itemForCategoryPopup.addons}
-          pricingModels={itemForCategoryPopup.variantsV2?.pricingModels}    
+          pricingModels={itemForCategoryPopup.variantsV2?.pricingModels}
           onAddToCart={() => {
-            setIsVarAddPopUpVisible(false)
+            setIsVarAddPopUpVisible(false);
           }}
           isV2={!!itemForCategoryPopup?.variantsV2}
         />

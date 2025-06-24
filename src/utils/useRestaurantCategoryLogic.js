@@ -26,14 +26,14 @@ const useRestaurantCategoryLogic = ({
   const isExpanded = ExpandedCategories.includes(categoryId);
   const hasSubCategories = categories?.length > 0;
   const hasItemsOnly = itemCards?.length > 0 && !hasSubCategories;
-
-  const [currentPopupMatchedPrice, setCurrentPopupMatchedPrice] = useState(null);
-  const [selections, setSelections] = useState({
-    variantSelections: {}, // groupId: Id
-    addonSelections: {}, // groupId: [id, id, id, id]
-    totalAddonPrice: 0,
-    totalVariantPrice: 0,
-  });
+  const {
+    resData,
+    lastCustomisationMap,
+    selections,
+    setSelections,
+    currentPopupMatchedPrice,
+    setCurrentPopupMatchedPrice,
+  } = useRestaurant();
 
     const {
     variantSelections,
@@ -41,29 +41,6 @@ const useRestaurantCategoryLogic = ({
     totalAddonPrice,
     totalVariantPrice,
   } = selections;
-
-  const { resData, lastCustomisationMap, setLastCustomisationMap} = useRestaurant();
-
-  // Add Item Logic
-  const handleAddItem = useCallback((itemwithCustomisation) => {
-    if (!resData?.id) {
-      // console.warn("No Restaurant ID found in context API")
-      return;
-    }
-    addItem(itemwithCustomisation, resData.id, resData);
-
-    setLastCustomisationMap((prev) => ({
-      ...prev,
-      [itemwithCustomisation.id]: itemwithCustomisation,
-    }));
-    console.log("Storing customization for", itemwithCustomisation.id, {
-      id: itemwithCustomisation.id,
-      name: itemwithCustomisation.name,
-      price: itemwithCustomisation.price,
-      variants: itemwithCustomisation.variants,
-      addons: itemwithCustomisation.addons,
-    });
-  }, [addItem, resData, setLastCustomisationMap]);
 
   // For the middle counter logic
   const getItemCount = useCallback((id) => {
@@ -96,15 +73,6 @@ const useRestaurantCategoryLogic = ({
     }
     removeItem(itemwithCustomisation);
   }, [getCustomizationsForId, removeItem]);
-
-  const resetSelections = useCallback(() => {
-    setSelections({
-      variantSelections: {},
-      addonSelections: {},
-      totalAddonPrice: 0,
-      totalVariantPrice: 0,
-    });
-  }, []);
 
   const handleCategoryClick = useCallback(() => {
     if (isExpanded) {
@@ -222,10 +190,8 @@ const useRestaurantCategoryLogic = ({
     totalVariantPrice,
     resData,
     lastCustomisationMap,
-    handleAddItem,
     getItemCount,
     handleRemoveItem,
-    resetSelections,
     handleCategoryClick,
     handleSubCategoryClick,
     handlePopup,
