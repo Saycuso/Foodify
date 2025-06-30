@@ -66,7 +66,7 @@ const RestaurantCategory = ({
     setClearCartAndContinue,
     setShowConflictModal,
   });
-  const {resData} = useRestaurant();
+  const { resData } = useRestaurant();
 
   return (
     <li className="font-semibold text-lg">
@@ -133,27 +133,42 @@ const RestaurantCategory = ({
                               key={`item-${
                                 item.card.info.id || item.card.info.name
                               }`}
-                              className="text-[18px] text-gray-700 border-b border-gray-200 pb-1"
+                              className="text-[18px] text-gray-700 border-b border-gray-200 pb-4 pt-2" // Added pb-4 and pt-2 for spacing
                             >
-                              <div className="flex justify-between">
-                                <span>
-                                  {item.card.info.name}
-                                  <br />₹
-                                  {item.card.info.price / 100 ||
-                                    item.card.info.defaultPrice / 100}
-                                </span>
+                              <div className="flex justify-between items-start"> {/* Changed items-center to items-start */}
+                                <div className="flex-1 pr-4"> {/* Added flex-1 and pr-4 for spacing */}
+                                  <h3 className="text-xl font-bold text-gray-900 mb-1"> {/* Fancier item name */}
+                                    {item.card.info.name}
+                                  </h3>
+                                  <p className="text-lg font-semibold text-gray-800 mb-2"> {/* Fancier price */}
+                                    ₹
+                                    {item.card.info.price / 100 ||
+                                      item.card.info.defaultPrice / 100}
+                                  </p>
+                                  {item.card.info.ratings?.aggregatedRating?.rating && ( // Added rating display
+                                    <div className="flex items-center text-sm text-gray-600 mb-2">
+                                      <span className="bg-green-500 text-white px-2 py-0.5 rounded-full mr-1">
+                                        {item.card.info.ratings.aggregatedRating.rating}
+                                      </span>
+                                      ({item.card.info.ratings.aggregatedRating.ratingCountV2 || "0"} ratings)
+                                    </div>
+                                  )}
+                                  <p className="text-sm text-gray-500 leading-relaxed"> {/* Item description */}
+                                    {item.card.info.description}
+                                  </p>
+                                </div>
 
-                                <div className="relative w-[156px]">
+                                <div className="relative w-40 h-36 flex-shrink-0"> {/* Increased size and added flex-shrink-0 */}
                                   <img
-                                    className="w-full h-[144px] rounded-xl object-cover shadow"
-                                    alt="res-logo"
+                                    className="w-full h-full rounded-xl object-cover shadow-lg transform transition-transform duration-300 hover:scale-105" // Added shadow-lg, transform, transition, hover:scale-105
+                                    alt={item.card.info.name} // Added alt attribute for accessibility
                                     src={
                                       CATEGORY_IMG_URL +
                                       item?.card?.info?.imageId
                                     }
                                   />
                                   <div
-                                    className={`absolute left-1/2 -translate-x-1/2 bottom-0 bg-white border border-gray-300 text-green-600 font-semibold px-4 py-1 rounded-md shadow hover:shadow-md ${
+                                    className={`absolute left-1/2 -translate-x-1/2 bottom-0 bg-white border border-gray-300 text-green-600 font-bold px-5 py-2 rounded-lg shadow-xl hover:shadow-2xl transition-all duration-200 ease-in-out transform hover:-translate-y-1 ${ // Enhanced button styles
                                       count === 0
                                         ? `hover:cursor-pointer`
                                         : `cursor-default`
@@ -163,16 +178,19 @@ const RestaurantCategory = ({
                                     }}
                                   >
                                     {count > 0 ? (
-                                      <div className="flex items-center gap-2">
+                                      <div className="flex items-center gap-3"> {/* Increased gap */}
                                         <button
-                                          onClick={() =>
+                                          className="text-xl font-bold" // Larger button text
+                                          onClick={(e) => {
+                                            e.stopPropagation(); // Prevent parent div's onClick
                                             handleRemoveItem(lastCustomisationMap[item.card.info.id])
-                                          }
+                                          }}
                                         >
-                                          -
+                                          −
                                         </button>
-                                        <div>{count}</div>
+                                        <div className="text-lg">{count}</div> {/* Larger count text */}
                                         <button
+                                          className="text-xl font-bold" // Larger button text
                                           onClick={(e) => {
                                             e.stopPropagation(); // Prevent parent div's onClick
                                             if (itemwithCustomisation) {
@@ -196,7 +214,7 @@ const RestaurantCategory = ({
                                         </button>
                                       </div>
                                     ) : (
-                                      <div>Add</div>
+                                      <div className="text-base uppercase">Add</div> // Uppercase for "Add"
                                     )}
                                   </div>
                                   {itemwithCustomisation &&
@@ -222,7 +240,7 @@ const RestaurantCategory = ({
                                         onAddToCart={() => {
                                           setIsVarAddPopUpVisible(false);
                                         }}
-                                        isV2={!!item?.card?.info?.variantsV2} 
+                                        isV2={!!item?.card?.info?.variantsV2}
                                         addItem={addItem}
                                       />
                                     )}
@@ -264,23 +282,38 @@ const RestaurantCategory = ({
                 return (
                   <li
                     key={item?.card?.info?.id || item?.card?.info?.name}
-                    className="text-lg text-gray-700 border-b border-gray-200 py-2"
+                    className="text-lg text-gray-700 border-b border-gray-200 py-4" // Increased vertical padding
                   >
-                    <div className="flex justify-between">
-                      <span>
-                        {item.card.info.name}
-                        <br />₹
-                        {item.card.info.price / 100 ||
-                          item.card.info.defaultPrice / 100}
-                      </span>
-                      <div className="relative w-[156px]">
+                    <div className="flex justify-between items-start"> {/* Changed items-center to items-start */}
+                      <div className="flex-1 pr-4"> {/* Added flex-1 and pr-4 for spacing */}
+                        <h3 className="text-xl font-bold text-gray-900 mb-1"> {/* Fancier item name */}
+                          {item.card.info.name}
+                        </h3>
+                        <p className="text-lg font-semibold text-gray-800 mb-2"> {/* Fancier price */}
+                          ₹
+                          {item.card.info.price / 100 ||
+                            item.card.info.defaultPrice / 100}
+                        </p>
+                        {item.card.info.ratings?.aggregatedRating?.rating && ( // Added rating display
+                          <div className="flex items-center text-sm text-gray-600 mb-2">
+                            <span className="bg-green-500 text-white px-2 py-0.5 rounded-full mr-1">
+                              {item.card.info.ratings.aggregatedRating.rating}
+                            </span>
+                            ({item.card.info.ratings.aggregatedRating.ratingCountV2 || "0"} ratings)
+                          </div>
+                        )}
+                        <p className="text-sm text-gray-500 leading-relaxed"> {/* Item description */}
+                          {item.card.info.description}
+                        </p>
+                      </div>
+                      <div className="relative w-40 h-36 flex-shrink-0"> {/* Increased size and added flex-shrink-0 */}
                         <img
-                          className="w-full h-[144px] rounded-xl object-cover shadow"
-                          alt="res-logo"
+                          className="w-full h-full rounded-xl object-cover shadow-lg transform transition-transform duration-300 hover:scale-105" // Added shadow-lg, transform, transition, hover:scale-105
+                          alt={item.card.info.name} // Added alt attribute for accessibility
                           src={CATEGORY_IMG_URL + item?.card?.info?.imageId}
                         />
                         <div
-                          className={`absolute left-1/2 -translate-x-1/2 bottom-0 bg-white border border-gray-300 text-green-600 font-semibold px-4 py-1 rounded-md shadow hover:shadow-md ${
+                          className={`absolute left-1/2 -translate-x-1/2 bottom-0 bg-white border border-gray-300 text-green-600 font-bold px-5 py-2 rounded-lg shadow-xl hover:shadow-2xl transition-all duration-200 ease-in-out transform hover:-translate-y-1 ${ // Enhanced button styles
                             count === 0
                               ? `hover:cursor-pointer`
                               : `cursor-default`
@@ -292,16 +325,19 @@ const RestaurantCategory = ({
                           }}
                         >
                           {count > 0 ? (
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-3"> {/* Increased gap */}
                               <button
-                                onClick={() =>
+                                className="text-xl font-bold" // Larger button text
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Prevent parent div's onClick
                                   handleRemoveItem(lastCustomisationMap[item.card.info.id])
-                                }
+                                }}
                               >
-                                -
+                                −
                               </button>
-                              <div>{count}</div>
+                              <div className="text-lg">{count}</div> {/* Larger count text */}
                               <button
+                                className="text-xl font-bold" // Larger button text
                                 onClick={(e) => {
                                   e.stopPropagation(); // Prevent parent div's onClick
                                   if (itemwithCustomisation) {
@@ -316,7 +352,7 @@ const RestaurantCategory = ({
                                       variants: [],
                                       addons: [],
                                     };
-                                    addItem(itemToAdd,resData.id, resData)
+                                    addItem(itemToAdd, resData.id, resData)
                                   }
                                 }}
                               >
@@ -324,7 +360,7 @@ const RestaurantCategory = ({
                               </button>
                             </div>
                           ) : (
-                            <div>Add</div>
+                            <div className="text-base uppercase">Add</div> // Uppercase for "Add"
                           )}
                         </div>
 
@@ -360,7 +396,7 @@ const RestaurantCategory = ({
                           <CustomizationPopUp
                             key={item.card.info.id}
                             item={item.card.info}
-                            addItem = {addItem}
+                            addItem={addItem}
                             onClose={() => setCustomizingItem(null)}
                             baseprice={item.card.info.price ?? item.card.info.defaultPrice ?? 0}
                             previous={previous}

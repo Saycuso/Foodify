@@ -91,7 +91,7 @@ const Cart = () => {
             addItem={addItem}
             onClose={() => {
               setCustomizingItem(null);
-            }}
+            }} 
             baseprice={
               itemToCustomizeFromCart.price ??
               itemToCustomizeFromCart.OriginalMenuItemInfo?.price ??
