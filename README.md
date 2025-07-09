@@ -1,6 +1,6 @@
 # Foodify
 
-[# parcel](https://lucky-buttercream-527a51.netlify.app/)
+[# WebApp Link](https://lucky-buttercream-527a51.netlify.app/)
 - Dev build
 - Local Server
 - HMR = Hot Module replacement
