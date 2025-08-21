@@ -7,6 +7,7 @@ import CustomizationPopUp from "./CustomizationPopUp";
 import useRestaurantCategoryLogic from "../utils/useRestaurantCategoryLogic"; // Import the logic hook
 import useRestaurantMenu from "../utils/useRestaurantMenu";
 import { useRestaurant } from "./RestaurantContext";
+import { useState } from "react";
 
 const RestaurantCategory = ({
   data,
@@ -67,6 +68,8 @@ const RestaurantCategory = ({
     setShowConflictModal,
   });
   const { resData } = useRestaurant();
+
+  const [expandedItemId, setExpandedItemId] = useState(null);
 
   return (
     <li className="font-semibold text-lg">
