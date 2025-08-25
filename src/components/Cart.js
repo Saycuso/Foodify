@@ -121,6 +121,7 @@ const Cart = () => {
             setIsVarAddPopUpVisible(false);
           }}
           isV2={!!itemForCategoryPopup?.variantsV2}
+          addItem={addItem}
         />
       ) : null}
     </div>

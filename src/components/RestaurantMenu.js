@@ -2,7 +2,7 @@
 import Shimmer from "./Shimmer";
 import { useParams } from "react-router-dom";
 import useRestaurantMenu from "../utils/useRestaurantMenu";
-import { useState, useEffect} from "react";
+import { useState, useEffect } from "react";
 import RestaurantCategory from "./RestaurantCategory";
 import OutletPopUp from "./OutletPopUp";
 import useRestaurantOutletHook from "../utils/useRestaurantOutletHook";
@@ -17,7 +17,7 @@ const RestaurantMenu = () => {
   const [ExpandedCategories, setExpandedCategories] = useState([]);
   const [ExpandedSubCategories, setExpandedSubCategories] = useState([]);
   const [showPopupOutlet, setshowPopupOutlet] = useState(false);
-  const [showConflictModal,setShowConflictModal] = useState(false);
+  const [showConflictModal, setShowConflictModal] = useState(false);
   const [pendingItem, setPendingItem] = useState(null);
   const [clearCartAndContinue, setClearCartAndContinue] = useState(null);
   const [Filters, setFilters] = useState({
@@ -41,26 +41,33 @@ const RestaurantMenu = () => {
     setPopupItemId,
     showCartFooter,
   } = useRestaurant();
-  const { cartState, cartItems, cartRestaurantId, addItem, removeItem, totalItems, clearCart } =
-    useCartfooter({
-      onCrossRestaurantAttempt: (item, clearCartFn) => {
-        setPendingItem(item);   
-        setShowConflictModal(true);
-        setClearCartAndContinue(()=>clearCartFn)
-      },
-    }); 
+  const {
+    cartState,
+    cartItems,
+    cartRestaurantId,
+    addItem,
+    removeItem,
+    totalItems,
+    clearCart,
+  } = useCartfooter({
+    onCrossRestaurantAttempt: (item, clearCartFn) => {
+      setPendingItem(item);
+      setShowConflictModal(true);
+      setClearCartAndContinue(() => clearCartFn);
+    },
+  });
   const { resId } = useParams();
   const resInfo = useRestaurantMenu(resId); // Custom hook
   const outletData = useRestaurantOutletHook(resId); // Custom hook
   const navigate = useNavigate(); // Hook from react-router-dom
 
-  useEffect(()=> {
+  useEffect(() => {
     // This effect is now called unconditionally in every render,
     // but the logic inside only runs if resInfo and its name property exist.
-    if(resInfo?.cards[2]?.card?.card?.info?.name){
+    if (resInfo?.cards[2]?.card?.card?.info?.name) {
       setRestaurantName(resInfo.cards[2].card.card.info.name);
-      setRestaurantAreaName(resInfo.cards[2].card.card.info.areaName)
-      setResData(resInfo.cards[2].card.card.info)
+      setRestaurantAreaName(resInfo.cards[2].card.card.info.areaName);
+      setResData(resInfo.cards[2].card.card.info);
     }
   }, [resInfo, setRestaurantName]); // Depend on resInfo and setRestaurantNamwe
 
@@ -68,7 +75,7 @@ const RestaurantMenu = () => {
   // Now we check for loading state *after* all hooks have been called.
   // We can combine the checks since both are needed to render the menu.
   if (resInfo == null || outletData == null) {
-      return <Shimmer />;
+    return <Shimmer />;
   }
 
   // --- Destructuring and other logic (after early returns) ---
@@ -84,16 +91,19 @@ const RestaurantMenu = () => {
     hasGuiltfreeItems,
     areaName,
     multiOutlet,
-    locality
+    locality,
   } = resInfo?.cards[2]?.card?.card?.info || {}; // Using optional chaining as a safeguard
 
-  const isPureVeg = resInfo?.cards[4]?.groupedCard?.cardGroupMap?.REGULAR?.cards[0].card.card.isPureVeg === true;
+  const isPureVeg =
+    resInfo?.cards[4]?.groupedCard?.cardGroupMap?.REGULAR?.cards[0].card.card
+      .isPureVeg === true;
 
-  const {sla = {}} =  resInfo?.cards[2]?.card?.card?.info || {}; // Initialize sla as an empty object if null
-  const {minDeliveryTime, maxDeliveryTime, lastMileTravelString } = sla;
+  const { sla = {} } = resInfo?.cards[2]?.card?.card?.info || {}; // Initialize sla as an empty object if null
+  const { minDeliveryTime, maxDeliveryTime, lastMileTravelString } = sla;
 
   const { cards = [] } =
-    resInfo?.cards[4]?.groupedCard?.cardGroupMap?.REGULAR || {};
+    resInfo?.cards?.find((c) => c?.groupedCard?.cardGroupMap?.REGULAR)
+      ?.groupedCard?.cardGroupMap?.REGULAR || {};
 
   const currentInfo = {
     resId,
@@ -211,7 +221,7 @@ const RestaurantMenu = () => {
               return (
                 <RestaurantCategory
                   key={`category-${cardcat.card.card.categoryId}-${
-                       cardcat.card.card.title || index
+                    cardcat.card.card.title || index
                   }`}
                   data={cardcat.card.card}
                   Filters={Filters}
@@ -226,81 +236,74 @@ const RestaurantMenu = () => {
                   addItem={addItem}
                   removeItem={removeItem}
                   totalItems={totalItems}
-                  cartItems = {cartItems}
-                  clearCart = {clearCart}
-                  cartRestaurantId = {cartRestaurantId}
-                  customizingItem = {customizingItem}
-                  setCustomizingItem = {setCustomizingItem}
-                  setPendingItem = {setPendingItem}
-                  setClearCartAndContinue = {setClearCartAndContinue}
-                  setShowConflictModal = {setShowConflictModal}
+                  cartItems={cartItems}
+                  clearCart={clearCart}
+                  cartRestaurantId={cartRestaurantId}
+                  customizingItem={customizingItem}
+                  setCustomizingItem={setCustomizingItem}
+                  setPendingItem={setPendingItem}
+                  pendingItem={pendingItem}
+                  setClearCartAndContinue={setClearCartAndContinue}
+                  setShowConflictModal={setShowConflictModal}
                 />
               );
             })}
           </ul>
-        <div>
-          {showConflictModal && (
-            <ConflictModal
-              onConfirm = {
-                async()=>{
-                console.log("Confirmed! Clearing cart and re-adding item...");
-                if(clearCartAndContinue){
-                  // 1. Execute the clearCart function obtained from useCartfooter
-                  await clearCartAndContinue();
-                 setTimeout(() => {
-                    if(pendingItem){
-                      console.log("Pending item:",pendingItem);
-                      const hasVariantsorAddonsForPending =
-                          pendingItem.variantsV2?.variantGroups?.length > 0 ||
-                          pendingItem.addons?.length > 0 ||
-                          pendingItem.variants?.variantGroups?.length >0;
-                      
-                      if(hasVariantsorAddonsForPending){
-                         // If it has customizations, open CategoryItemPopUp for re-selection
-                        setPopupItemId(pendingItem.id); // Pass the full pendingItem object
-                        setIsVarAddPopUpVisible(true) // Show the popup
-                        setShowConflictModal(false);
-                        // The actual addItem will occur from within the popup's handleAddToCartFinal
-                      }
-                      else{
-                           const itemToAdd = {
-                             id: pendingItem.id,
-                             price: pendingItem.price ?? pendingItem.defaultPrice,
-                             name: pendingItem.name,
-                             variants: [], // Ensure these are always arrays
-                             addons: [], // Ensure these are always arrays
-                           };
-                        // If no customizations, add directly to the now empty cart
-                        addItem(itemToAdd, resData.id, resData); // <--- Re-add the item to the current restaurant         
-                        setShowConflictModal(false);
-                        setPendingItem(null);
-                        setClearCartAndContinue(null); // It's safe to clear now for this path.
-                      } 
+          <div>
+            {showConflictModal && (
+              <ConflictModal
+                onConfirm={async () => {
+                  console.log("Confirmed! Clearing cart and re-adding item...");
+                  if (pendingItem) {
+                    console.log("Pending item:", pendingItem);
+                    const hasVariantsorAddonsForPending =
+                      pendingItem.variantsV2?.variantGroups?.length > 0 ||
+                      pendingItem.addons?.length > 0 ||
+                      pendingItem.variants?.variantGroups?.length > 0;
+
+                    if (hasVariantsorAddonsForPending) {
+                      // If it has customizations, open CategoryItemPopUp for re-selection
+                      setPopupItemId(pendingItem.id); // Pass the full pendingItem object
+                      setIsVarAddPopUpVisible(true); // Show the popup
+                      setShowConflictModal(false);
+                      // The actual addItem will occur from within the popup's handleAddToCartFinal
                     } else {
-                        console.log("🟡 No pending item. Closing modal.");
-                        setShowConflictModal(false);
-                        setPendingItem(null);
-                        setClearCartAndContinue(null); 
-                    }    
-                  }, 50);
-                }
-              }}
-              onCancel = {()=>{
-                // If user cancels, just close modal and clear pending state
-                setShowConflictModal(false);
-                setPendingItem(null);
-                setClearCartAndContinue(null);
-              }}
-            />
-          )}
-        </div>
+                      if (clearCartAndContinue) {
+                        await clearCartAndContinue();
+                        const itemToAdd = {
+                          id: pendingItem.id,
+                          price: pendingItem.price ?? pendingItem.defaultPrice,
+                          name: pendingItem.name,
+                          variants: [], // Ensure these are always arrays
+                          addons: [], // Ensure these are always arrays
+                        };
+                        // If no customizations, add directly to the now empty cart
+                        addItem(itemToAdd, resData.id, resData); // <--- Re-add the item to the current restaurant
+                      }
+                      setShowConflictModal(false);
+                      setPendingItem(null);
+                      setClearCartAndContinue(null); // It's safe to clear now for this path.
+                    }
+                  }
+                }}
+                onCancel={() => {
+                  // If user cancels, just close modal and clear pending state
+                  setShowConflictModal(false);
+                  setPendingItem(null);
+                  setClearCartAndContinue(null);
+                }}
+              />
+            )}
+          </div>
         </div>
         {totalItems > 0 && showCartFooter && (
           <div className="fixed bottom-0 left-0 right-0 bg-green-600 text-white flex justify-between items-center px-4 py-3 shadow-md z-40">
             <span>{totalItems} items added</span>
             <button
               className="bg-white text-green-600 px-4 py-1 rounded font-bold"
-              onClick={() => { navigate("/Cart")}}
+              onClick={() => {
+                navigate("/Cart");
+              }}
             >
               VIEW CART
             </button>
