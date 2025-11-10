@@ -17,10 +17,10 @@ const AppLayout = () => {
   const location = useLocation();
   const isCartPage = location.pathname === "/Cart"
   return (
-  <RestaurantProvider> {/* 👈 Moved here */}
+  <RestaurantProvider>
     <div className="app">
       {!isCartPage && <Header />}
-      <Outlet />  {/* 👈 This tells React where to render child routes */}
+      <Outlet />
     </div>
   </RestaurantProvider>
   );
@@ -62,7 +62,7 @@ const appRouter = createBrowserRouter([
 ],
 {
   future: {
-    v7_relativeSplatPath: true,  // 👈 Add this to remove the warning
+    v7_relativeSplatPath: true,  
   },
 }
 )
