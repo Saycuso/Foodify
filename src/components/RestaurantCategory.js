@@ -284,7 +284,7 @@ const RestaurantCategory = ({
                                     )}
                                   {customizingItem === item.card.info.id &&
                                     (console.log(
-                                      "Opening Customization for:",
+                                      "Opening Customization for: ",
                                       item.card.info.id,
                                       item.card.info.name
                                     ),
